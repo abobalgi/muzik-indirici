@@ -1,82 +1,84 @@
-from flask import Flask, request, send_file, jsonify
-from flask_cors import CORS
-import yt_dlp
-import os
-import uuid
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicFlow | Ritmi Yakala</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #1DB954; --bg: #0b0b0b; --glass: rgba(255, 255, 255, 0.05); }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: #000; color: #fff; min-height: 100vh; overflow-x: hidden; }
+        .container { max-width: 600px; margin: 0 auto; padding: 30px 15px; text-align: center; }
+        h1 { font-size: 2.5rem; background: linear-gradient(to right, #1DB954, #19e68c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; }
+        .search-wrapper { position: relative; margin: 25px 0; }
+        input { width: 100%; padding: 15px 20px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); background: var(--glass); color: #fff; outline: none; box-sizing: border-box; }
+        .search-btn { position: absolute; right: 5px; top: 5px; background: var(--primary); border: none; width: 40px; height: 40px; border-radius: 50%; color: #fff; cursor: pointer; }
+        
+        /* Animasyon */
+        .loader-wrapper { display: none; flex-direction: column; align-items: center; margin: 30px 0; }
+        .waves { display: flex; gap: 4px; height: 40px; align-items: center; }
+        .waves span { width: 4px; height: 15px; background: var(--primary); border-radius: 10px; animation: wave 1s infinite alternate; }
+        .waves span:nth-child(2) { animation-delay: 0.2s; }
+        .waves span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes wave { from { height: 10px; opacity: 0.4; } to { height: 40px; opacity: 1; } }
 
-app = Flask(__name__)
-CORS(app)
+        #results { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .card { background: var(--glass); padding: 12px; border-radius: 15px; display: flex; align-items: center; gap: 15px; text-align: left; }
+        .card img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; }
+        .card-info { flex: 1; overflow: hidden; }
+        .card-info h3 { font-size: 14px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dl-btn { background: #fff; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; min-width: 70px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MusicFlow</h1>
+        <p style="color: #888;">Ücretsiz ve Yüksek Kalite</p>
+        <div class="search-wrapper">
+            <input type="text" id="searchInput" placeholder="Şarkı veya sanatçı adı...">
+            <button class="search-btn" onclick="searchMusic()"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="loader-wrapper" id="mainLoader">
+            <div class="waves"><span></span><span></span><span></span><span></span></div>
+            <p style="color: var(--primary); margin-top: 10px; font-size: 13px;">Ritim Aranıyor...</p>
+        </div>
+        <div id="results"></div>
+    </div>
 
-DOWNLOAD_FOLDER = 'downloads'
-if not os.path.exists(DOWNLOAD_FOLDER):
-    os.makedirs(DOWNLOAD_FOLDER)
+    <script>
+        let API_BASE = "https://muzik-backend-kvii.onrender.com"; 
 
-@app.route('/search', methods=['GET'])
-def search():
-    query = request.args.get('q')
-    if not query:
-        return jsonify({"error": "Sorgu bos"}), 400
+        async function searchMusic() {
+            const q = document.getElementById('searchInput').value;
+            const resDiv = document.getElementById('results');
+            const loader = document.getElementById('mainLoader');
+            if(!q) return;
+            resDiv.innerHTML = "";
+            loader.style.display = "flex";
+            try {
+                const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                data.forEach(item => {
+                    resDiv.innerHTML += `
+                        <div class="card">
+                            <img src="${item.thumbnail}">
+                            <div class="card-info">
+                                <h3>${item.title}</h3>
+                                <p style="font-size:11px; color:#888; margin:5px 0 0 0;">Süre: ${item.duration}</p>
+                            </div>
+                            <button class="dl-btn" onclick="downloadMusic('${item.id}', this)">İndir</button>
+                        </div>`;
+                });
+            } catch (e) { alert("Sunucu uyanıyor olabilir, lütfen 10 saniye sonra tekrar deneyin."); }
+            finally { loader.style.display = "none"; }
+        }
 
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'quiet': True,
-        'extract_flat': True,
-    }
-
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            search_results = ydl.extract_info(f"ytsearch5:{query}", download=False)
-            results = []
-            for entry in search_results['entries']:
-                # Süre kısmını tam sayıya (int) çevirerek hatayı düzelttik
-                duration_val = entry.get('duration')
-                if duration_val:
-                    mins = int(duration_val // 60)
-                    secs = int(duration_val % 60)
-                    duration_str = f"{mins}:{secs:02d}"
-                else:
-                    duration_str = "00:00"
-
-                results.append({
-                    'id': entry['id'],
-                    'title': entry['title'],
-                    'thumbnail': entry['thumbnails'][-1]['url'] if entry.get('thumbnails') else '',
-                    'duration': duration_str
-                })
-            return jsonify(results)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/download', methods=['GET'])
-def download():
-    video_id = request.args.get('id')
-    video_url = f"https://www.youtube.com/watch?v={video_id}"
-    unique_id = str(uuid.uuid4())
-    output_path = os.path.join(DOWNLOAD_FOLDER, unique_id)
-
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': f'{output_path}.%(ext)s',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }, {
-            'key': 'EmbedThumbnail',
-        }],
-        'writethumbnail': True,
-        'quiet': True,
-    }
-
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(video_url, download=True)
-            final_file = f"{output_path}.mp3"
-            return send_file(final_file, as_attachment=True, download_name=f"{info['title']}.mp3")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-    
+        function downloadMusic(id, btn) {
+            btn.innerText = "...";
+            window.location.href = `${API_BASE}/download?id=${id}`;
+            setTimeout(() => { btn.innerText = "İndir"; }, 8000);
+        }
+    </script>
+</body>
+</html>
