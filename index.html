@@ -8,313 +8,176 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
-            --bg: #09090b; 
-            --surface: #18181b; 
-            --border: #27272a;
-            --primary: #f43f5e; /* Premium Gül Kurusu/Kırmızı */
-            --secondary: #0ea5e9; /* Premium Mavi */
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg: #09090b; --surface: #18181b; --border: #27272a;
+            --primary: #f43f5e; --secondary: #0ea5e9; --success: #10b981;
+            --text-main: #f8fafc; --text-muted: #94a3b8;
         }
-        
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg); 
-            color: var(--text-main); 
-            min-height: 100vh; 
-            padding-bottom: 80px;
-            -webkit-font-smoothing: antialiased;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); min-height: 100vh; padding-bottom: 100px; }
 
-        /* Havalı Üst Kısım */
-        .hero {
-            padding: 50px 20px 40px;
-            text-align: center;
-            background: linear-gradient(180deg, rgba(244,63,94,0.15) 0%, rgba(9,9,11,1) 100%);
-        }
+        .hero { padding: 50px 20px 40px; text-align: center; background: linear-gradient(180deg, rgba(244,63,94,0.15) 0%, rgba(9,9,11,1) 100%); }
         .hero h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
         .hero h1 span { color: var(--primary); }
         .hero p { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
 
         .container { max-width: 600px; margin: 0 auto; padding: 0 20px; }
-
-        /* Arama Kutusu & Öneriler - Tam Orantılı */
-        .search-container {
-            position: relative;
-            margin-top: -15px;
-            z-index: 100;
-        }
-        .search-box {
-            display: flex;
-            align-items: center;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 6px 6px 6px 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: all 0.3s ease;
-        }
-        .search-box:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 10px 40px rgba(244,63,94,0.2);
-        }
-        .search-box input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            font-size: 1rem;
-            font-family: 'Inter', sans-serif;
-            outline: none;
-            width: 100%;
-        }
-        .search-box input::placeholder { color: #52525b; }
-        .search-box button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
-        }
-        .search-box button:active { transform: scale(0.92); }
-
-        /* Klavye Önerileri & Geçmiş (MYT Tarzı) */
-        .suggestions-box {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            margin-top: 8px;
-            overflow: hidden;
-            display: none;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-        }
-        .suggestion-item {
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-            color: var(--text-main);
-            font-size: 0.95rem;
-            transition: background 0.2s;
-        }
+        .search-container { position: relative; margin-top: -15px; z-index: 100; }
+        .search-box { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 6px 6px 6px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .search-box:focus-within { border-color: var(--primary); }
+        .search-box input { flex: 1; background: transparent; border: none; color: var(--text-main); font-size: 1rem; font-family: 'Inter', sans-serif; outline: none; width: 100%; }
+        .search-box button { background: var(--primary); color: white; border: none; width: 44px; height: 44px; border-radius: 12px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        
+        .suggestions-box { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin-top: 8px; overflow: hidden; display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        .suggestion-item { padding: 14px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; font-size: 0.95rem; }
         .suggestion-item:hover { background: rgba(255,255,255,0.05); }
-        .suggestion-item i { color: var(--text-muted); font-size: 1rem; width: 16px; text-align: center;}
-        .history-icon { color: var(--secondary) !important; }
+        .suggestion-item i { color: var(--text-muted); width: 16px; }
 
-        /* Yükleniyor Animasyonu */
         .loader { display: none; text-align: center; margin: 40px 0; }
-        .spinner { 
-            width: 36px; height: 36px; 
-            border: 3px solid var(--border); 
-            border-top-color: var(--primary); 
-            border-radius: 50%; 
-            animation: spin 0.8s linear infinite; 
-            margin: 0 auto 12px; 
-        }
+        .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Sonuç Kartları - Kusursuz Hizalama */
         .results { margin-top: 30px; display: flex; flex-direction: column; gap: 12px; }
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 12px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            transition: transform 0.2s, background 0.2s;
-        }
-        .card:active { transform: scale(0.98); }
-        .card img {
-            width: 70px;
-            height: 70px;
-            border-radius: 12px;
-            object-fit: cover;
-        }
-        .info { flex: 1; min-width: 0; /* Yazıların taşmasını engeller */ }
-        .info h3 { 
-            margin: 0 0 4px; 
-            font-size: 0.95rem; 
-            font-weight: 600;
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-        }
-        .info p { margin: 0; font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;}
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px; display: flex; gap: 15px; align-items: center; }
+        .card img { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; }
+        .info { flex: 1; min-width: 0; }
+        .info h3 { margin: 0 0 4px; font-size: 0.95rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .info p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
         
-        /* İndirme Butonları */
         .actions { display: flex; flex-direction: column; gap: 6px; }
-        .btn {
-            border: none;
-            padding: 0 12px;
-            height: 32px;
-            border-radius: 8px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
-            width: 85px;
-        }
+        .btn { border: none; padding: 0 12px; height: 30px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 85px; }
+        .btn-play { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .btn-play:hover { background: var(--success); color: white; }
         .btn-mp3 { background: rgba(244, 63, 94, 0.1); color: var(--primary); }
-        .btn-mp3:hover, .btn-mp3:active { background: var(--primary); color: white; }
-        
+        .btn-mp3:hover { background: var(--primary); color: white; }
         .btn-mp4 { background: rgba(14, 165, 233, 0.1); color: var(--secondary); }
-        .btn-mp4:hover, .btn-mp4:active { background: var(--secondary); color: white; }
+        .btn-mp4:hover { background: var(--secondary); color: white; }
+
+        /* CANLI MÜZİK ÇALAR (Alt Bar) */
+        .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 15px; transform: translateY(100%); transition: transform 0.3s ease; z-index: 1000; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
+        .player-bar img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
+        .player-info { flex: 1; min-width: 0; }
+        .player-info h4 { margin: 0 0 2px; font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-info p { margin: 0; font-size: 0.75rem; color: var(--primary); }
+        .player-bar audio { height: 35px; width: 100%; max-width: 250px; outline: none; }
+        .close-player { background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 5px; }
     </style>
 </head>
 <body>
 
     <div class="hero">
         <h1>Vibe<span>Down</span></h1>
-        <p>Sınırsız müzik, premium kalite.</p>
+        <p>Spotify linki, Youtube linki veya sanatçı adı yaz...</p>
     </div>
 
     <div class="container">
         <div class="search-container">
             <div class="search-box">
-                <input type="text" id="searchInput" autocomplete="off" placeholder="Batuflex, Uzi veya link...">
+                <input type="text" id="searchInput" autocomplete="off" placeholder="Batuflex veya Spotify Linki...">
                 <button onclick="triggerSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
             </div>
-            
             <div id="suggestionsBox" class="suggestions-box"></div>
         </div>
-
         <div class="loader" id="loader">
             <div class="spinner"></div>
-            <span style="color: var(--text-muted); font-size: 0.85rem;">Şarkılar getiriliyor...</span>
+            <span style="color: var(--text-muted); font-size: 0.85rem;">Müzikler aranıyor...</span>
         </div>
-
         <div class="results" id="results"></div>
+    </div>
+
+    <div class="player-bar" id="playerBar">
+        <img id="playerImg" src="" alt="Kapak">
+        <div class="player-info">
+            <h4 id="playerTitle">Şarkı Adı</h4>
+            <p><i class="fa-solid fa-headphones"></i> Şu an çalıyor</p>
+        </div>
+        <audio id="audioPlayer" controls controlsList="nodownload"></audio>
+        <button onclick="closePlayer()" class="close-player"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <script>
         const API_BASE = "/api"; 
-        
-        // --- ARAMA GEÇMİŞİ VE ÖNERİ SİSTEMİ ---
         const searchInput = document.getElementById('searchInput');
         const suggestionsBox = document.getElementById('suggestionsBox');
         let searchHistory = JSON.parse(localStorage.getItem('vibeHistory')) || [];
 
-        // Kullanıcı klavyede yazı yazarken
         searchInput.addEventListener('input', (e) => {
             const val = e.target.value.trim();
-            if(val.length > 0) {
-                fetchYouTubeSuggestions(val); // YouTube'dan öneri çek
-            } else {
-                showHistory(); // Boşsa geçmişi göster
-            }
+            if(val.length > 0 && !val.includes('spotify.com')) { fetchYouTubeSuggestions(val); } 
+            else { showHistory(); }
         });
 
-        // Arama kutusuna tıklandığında (Odaklanıldığında)
         searchInput.addEventListener('focus', () => {
-            if(searchInput.value.trim() === '') showHistory();
+            if(searchInput.value.trim() === '' || searchInput.value.includes('spotify.com')) showHistory();
             else fetchYouTubeSuggestions(searchInput.value.trim());
         });
 
-        // Ekranda boş bir yere tıklayınca öneri kutusunu kapat
         document.addEventListener('click', (e) => {
-            if(!e.target.closest('.search-container')) {
-                suggestionsBox.style.display = 'none';
-            }
+            if(!e.target.closest('.search-container')) suggestionsBox.style.display = 'none';
         });
 
-        // Geçmişi Göster
         function showHistory() {
-            if(searchHistory.length === 0) {
-                suggestionsBox.style.display = 'none';
-                return;
-            }
+            if(searchHistory.length === 0) { suggestionsBox.style.display = 'none'; return; }
             suggestionsBox.innerHTML = searchHistory.map(item => `
-                <div class="suggestion-item" onclick="selectSuggestion('${item}')">
-                    <i class="fa-solid fa-clock-rotate-left history-icon"></i> <span>${item}</span>
+                <div class="suggestion-item" onclick="selectSuggestion('${item.replace(/'/g, "\\'")}')">
+                    <i class="fa-solid fa-clock-rotate-left" style="color:var(--secondary);"></i> <span>${item}</span>
                 </div>
             `).join('');
             suggestionsBox.style.display = 'block';
         }
 
-        // YouTube'dan Canlı Öneri Çekme (JSONP Mantığı)
         function fetchYouTubeSuggestions(query) {
             const script = document.createElement('script');
-            // Google/YouTube altyapısına bağlanıyoruz
             script.src = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(query)}&jsonp=handleSuggestions`;
             document.head.appendChild(script);
         }
 
-        // YouTube'dan gelen veriyi ekrana basma
         window.handleSuggestions = function(data) {
-            const suggestions = data[1]; // Gelen öneri listesi
-            if(suggestions.length === 0) {
-                suggestionsBox.style.display = 'none';
-                return;
-            }
-            suggestionsBox.innerHTML = suggestions.slice(0, 6).map(item => `
-                <div class="suggestion-item" onclick="selectSuggestion('${item}')">
+            const suggestions = data[1];
+            if(suggestions.length === 0) { suggestionsBox.style.display = 'none'; return; }
+            suggestionsBox.innerHTML = suggestions.slice(0, 5).map(item => `
+                <div class="suggestion-item" onclick="selectSuggestion('${item.replace(/'/g, "\\'")}')">
                     <i class="fa-solid fa-magnifying-glass"></i> <span>${item}</span>
                 </div>
             `).join('');
             suggestionsBox.style.display = 'block';
         }
 
-        // Önerilen kelimeye tıklanınca
         function selectSuggestion(text) {
             searchInput.value = text;
             suggestionsBox.style.display = 'none';
-            triggerSearch(); // Otomatik aramayı başlat
+            triggerSearch();
         }
 
-        // --- ARAMA VE İNDİRME MOTORU ---
         async function triggerSearch() {
             const q = searchInput.value.trim();
             if(!q) return;
 
-            // Başarılı aramayı geçmişe kaydet (Sadece son 5 aramayı tutar)
             searchHistory = [q, ...searchHistory.filter(item => item !== q)].slice(0, 5);
             localStorage.setItem('vibeHistory', JSON.stringify(searchHistory));
             suggestionsBox.style.display = 'none';
 
             const resDiv = document.getElementById('results');
             const loader = document.getElementById('loader');
-            
-            resDiv.innerHTML = "";
-            loader.style.display = "block";
+            resDiv.innerHTML = ""; loader.style.display = "block";
             
             try {
                 const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}`);
                 const data = await res.json();
-                
                 if(data.error) throw new Error(data.error);
 
                 data.forEach(item => {
-                    const sourceIcon = item.source === 'youtube' ? '<i class="fa-brands fa-youtube" style="color:#f43f5e;"></i>' : '<i class="fa-brands fa-soundcloud" style="color:#f97316;"></i>';
-
+                    const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     resDiv.innerHTML += `
                         <div class="card">
                             <img src="${item.thumbnail}" loading="lazy">
                             <div class="info">
                                 <h3>${item.title}</h3>
-                                <p>${sourceIcon} Süre: ${item.duration}</p>
+                                <p><i class="fa-brands fa-youtube" style="color:var(--primary);"></i> ${item.duration}</p>
                             </div>
                             <div class="actions">
+                                <button class="btn btn-play" onclick="playSong('${item.id}', '${item.source}', '${safeTitle}', '${item.thumbnail}')">
+                                    <i class="fa-solid fa-play"></i> Dinle
+                                </button>
                                 <button class="btn btn-mp3" onclick="downloadFile('${item.id}', '${item.source}', 'audio', this)">
                                     <i class="fa-solid fa-music"></i> MP3
                                 </button>
@@ -325,36 +188,43 @@
                         </div>`;
                 });
             } catch (e) { 
-                resDiv.innerHTML = `
-                    <div style="text-align:center; padding: 20px; color: var(--text-muted);">
-                        <i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
-                        <p>Sunucuya ulaşılamadı. Wispbyte uyuyor olabilir.</p>
-                    </div>`; 
-            } finally { 
-                loader.style.display = "none"; 
-            }
+                resDiv.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fa-solid fa-triangle-exclamation" style="font-size:2rem; color:var(--primary); margin-bottom:10px;"></i><p>Sunucu hatası veya bulunamadı.</p></div>`; 
+            } finally { loader.style.display = "none"; }
         }
 
-        // İndirme Butonu Aksiyonu
         function downloadFile(id, source, type, btn) {
             const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            btn.style.opacity = '0.7';
-            
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.style.opacity = '0.7';
             window.location.href = `${API_BASE}/download?id=${encodeURIComponent(id)}&source=${source}&type=${type}`;
-            
-            setTimeout(() => { 
-                btn.innerHTML = originalHTML; 
-                btn.style.opacity = '1';
-            }, 6000);
+            setTimeout(() => { btn.innerHTML = originalHTML; btn.style.opacity = '1'; }, 6000);
         }
 
-        // Enter tuşuna basınca arama yapması için
-        searchInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                triggerSearch();
-            }
-        });
+        // CANLI MÜZİK ÇALAR FONKSİYONU
+        async function playSong(id, source, title, thumbnail) {
+            const playerBar = document.getElementById('playerBar');
+            const audioPlayer = document.getElementById('audioPlayer');
+            
+            playerBar.style.transform = 'translateY(0)';
+            document.getElementById('playerImg').src = thumbnail;
+            document.getElementById('playerTitle').innerText = title;
+            audioPlayer.src = ""; 
+            
+            try {
+                const res = await fetch(`${API_BASE}/stream?id=${encodeURIComponent(id)}&source=${source}`);
+                const data = await res.json();
+                if(data.url) {
+                    audioPlayer.src = data.url;
+                    audioPlayer.play();
+                } else { alert("Bu şarkı şu an çalınamıyor."); }
+            } catch(e) { alert("Bağlantı hatası."); }
+        }
+
+        function closePlayer() {
+            document.getElementById('playerBar').style.transform = 'translateY(100%)';
+            document.getElementById('audioPlayer').pause();
+        }
+
+        searchInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') triggerSearch(); });
     </script>
 </body>
 </html>
