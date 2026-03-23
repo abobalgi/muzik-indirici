@@ -10,7 +10,7 @@
         :root { --bg: #09090b; --surface: #121216; --border: #27272a; --primary: #fbbf24; --accent: #f43f5e; --blue: #0ea5e9; --text: #f8fafc; --muted: #94a3b8; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 160px; }
-        .hero { padding: 40px 20px 20px; text-align: center; }
+        .hero { padding: 30px 20px 15px; text-align: center; }
         .hero h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -1.5px; }
         .hero h1 span { color: var(--accent); }
         .container { max-width: 600px; margin: 0 auto; padding: 0 15px; }
@@ -25,7 +25,6 @@
         .loader { display: none; flex-direction: column; align-items: center; margin: 50px 0; gap: 15px; }
         .flux-spinner { width: 45px; height: 45px; border: 4px solid var(--border); border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        .loader p { color: var(--muted); font-size: 0.85rem; letter-spacing: 1px; }
         .results { display: flex; flex-direction: column; gap: 12px; }
         .card { background: var(--surface); border-radius: 16px; padding: 12px; display: flex; gap: 15px; align-items: center; border: 1px solid var(--border); transition: 0.2s; }
         .card.playing { border-color: var(--accent); background: rgba(244, 63, 94, 0.05); }
@@ -33,27 +32,33 @@
         .info { flex: 1; min-width: 0; }
         .info h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .info p { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-        .info p i { color: var(--primary); }
-        
-        /* Butonları 3'lü yapıya uygun hale getirdik */
         .actions { display: flex; flex-direction: column; gap: 5px; }
         .btn { border: none; padding: 0 8px; height: 26px; border-radius: 6px; font-size: 0.65rem; font-weight: 700; cursor: pointer; width: 85px; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn-play { background: rgba(16, 185, 129, 0.2); color: #10b981; }
         .btn-mp3 { background: rgba(244, 63, 94, 0.2); color: var(--accent); }
         .btn-mp4 { background: rgba(14, 165, 233, 0.2); color: var(--blue); }
 
-        .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0c0c0e; border-top: 2px solid var(--accent); padding: 12px 20px; display: none; flex-direction: column; gap: 10px; z-index: 2000; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
-        .p-top { display: flex; align-items: center; gap: 12px; }
+        /* PLAYER BAR & CANLI SES SPEKTRUMU */
+        .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0c0c0e; border-top: 2px solid var(--accent); padding: 12px 20px; display: none; flex-direction: column; gap: 10px; z-index: 2000; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); overflow: hidden; }
+        #visualizer { position: absolute; bottom: 0; left: 0; width: 100%; height: 50px; z-index: -1; opacity: 0.4; pointer-events: none; }
+        .p-top { display: flex; align-items: center; gap: 12px; position: relative; z-index: 2; }
         .p-top img { width: 45px; height: 45px; border-radius: 6px; }
         .p-meta { flex: 1; min-width: 0; }
         .p-meta h4 { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .p-meta p { font-size: 0.7rem; color: var(--accent); }
-        .p-progress { width: 100%; display: flex; align-items: center; gap: 10px; }
+        .p-progress { width: 100%; display: flex; align-items: center; gap: 10px; position: relative; z-index: 2; }
         .p-progress span { font-size: 0.65rem; color: var(--muted); min-width: 35px; }
-        .p-seek { flex: 1; height: 5px; appearance: none; background: #27272a; border-radius: 10px; outline: none; cursor: pointer; }
+        .p-seek { flex: 1; height: 5px; appearance: none; background: rgba(255,255,255,0.1); border-radius: 10px; outline: none; cursor: pointer; }
         .p-seek::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; border: 2px solid #fff; }
-        .p-controls { display: flex; justify-content: center; gap: 35px; align-items: center; }
+        .p-controls { display: flex; justify-content: center; gap: 25px; align-items: center; position: relative; z-index: 2; }
         .p-btn { background: transparent; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; }
+        
+        /* ŞARKI SÖZÜ EKRANI (MODAL) */
+        .lyrics-modal { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; max-height: 60vh; background: rgba(18, 18, 22, 0.95); backdrop-filter: blur(10px); border: 1px solid var(--accent); border-radius: 16px; z-index: 1500; display: none; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .l-header { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid var(--border); }
+        .l-header h3 { font-size: 1rem; margin: 0; color: var(--text); }
+        .l-header button { background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; }
+        .l-content { padding: 20px; overflow-y: auto; font-size: 0.9rem; line-height: 1.8; color: #fff; text-align: center; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -65,12 +70,25 @@
         </div>
         
         <h2 id="listTitle" class="section-title"></h2>
-        <div class="loader" id="loader"><div class="flux-spinner"></div><p>FLUX EVRENİ TARANIYOR...</p></div>
+        <div class="loader" id="loader"><div class="flux-spinner"></div></div>
         <div id="results" class="results"></div>
     </div>
 
+    <div class="lyrics-modal" id="lyricsModal">
+        <div class="l-header">
+            <h3><i class="fa-solid fa-microphone-lines" style="color:var(--accent)"></i> Şarkı Sözleri</h3>
+            <button onclick="toggleLyrics()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="l-content" id="lyricsContent">Yükleniyor...</div>
+    </div>
+
     <div class="player-bar" id="playerBar">
-        <div class="p-top"><img id="pImg" src=""><div class="p-meta"><h4 id="pTitle">Seçilmedi</h4><p>Flux Player</p></div><button onclick="closePlayer()" style="background:none; border:none; color:#555;"><i class="fa-solid fa-chevron-down"></i></button></div>
+        <canvas id="visualizer"></canvas> <div class="p-top">
+            <img id="pImg" src="">
+            <div class="p-meta"><h4 id="pTitle">Seçilmedi</h4><p>Flux Player</p></div>
+            <button onclick="toggleLyrics()" style="background:none; border:none; color:var(--text); font-size:1.2rem; margin-right:10px;"><i class="fa-solid fa-microphone-lines"></i></button>
+            <button onclick="closePlayer()" style="background:none; border:none; color:#555; font-size:1.2rem;"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
         <div class="p-progress"><span id="pCurrent">0:00</span><input type="range" class="p-seek" id="pSeekBar" value="0" step="1"><span id="pDuration">0:00</span></div>
         <div class="p-controls">
             <button class="p-btn" onclick="prevSong()"><i class="fa-solid fa-backward-step"></i></button>
@@ -79,7 +97,7 @@
         </div>
     </div>
 
-    <audio id="audio" style="display:none;"></audio>
+    <audio id="audio" style="display:none;" crossorigin="anonymous"></audio>
 
     <script>
         const API_BASE = "/api";
@@ -91,6 +109,11 @@
         let currentPlaylist = [];
         let currentIndex = -1;
         let history = JSON.parse(localStorage.getItem('fHist')) || [];
+
+        // SES SPEKTRUMU İÇİN (Visualizer)
+        let audioCtx, analyser, source;
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
 
         window.onload = () => { triggerSearch(true); };
 
@@ -135,7 +158,6 @@
             try {
                 const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}`);
                 const data = await res.json();
-                
                 if(data.length === 0) throw new Error("Boş Liste");
                 
                 currentPlaylist = data;
@@ -151,7 +173,7 @@
                             </div>
                         </div>`;
                 });
-            } catch(e) { resDiv.innerHTML = "<p style='text-align:center; color:var(--muted);'>Filtrelere uygun sonuç bulunamadı.</p>"; }
+            } catch(e) { resDiv.innerHTML = "<p style='text-align:center; color:var(--muted);'>Sonuç bulunamadı.</p>"; }
             finally { loader.style.display = 'none'; }
         }
 
@@ -168,10 +190,70 @@
             document.getElementById('pTitle').innerText = item.title;
             document.getElementById('pImg').src = item.thumbnail;
             
+            // 1. ÖZELLİK: EKRAN KİLİDİ KONTROLÜ (MediaSession API)
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: item.title, artist: 'Flux Music',
+                    artwork: [{ src: item.thumbnail, sizes: '512x512', type: 'image/jpeg' }]
+                });
+                navigator.mediaSession.setActionHandler('previoustrack', prevSong);
+                navigator.mediaSession.setActionHandler('nexttrack', nextSong);
+            }
+
+            // 4. ÖZELLİK: CANLI SES SPEKTRUMU BAŞLATICI
+            if(!audioCtx) setupVisualizer();
+
+            // SÖZLER PENCERESİ AÇIKSA OTOMATİK YENİLE
+            if(document.getElementById('lyricsModal').style.display === 'flex') fetchLyrics(item.title);
+
             document.getElementById('pMainBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
             audio.src = `${API_BASE}/stream_audio?id=${item.id}`;
             audio.play();
             document.getElementById('pMainBtn').innerHTML = '<i class="fa-solid fa-circle-pause"></i>';
+        }
+
+        // 5. ÖZELLİK: ŞARKI SÖZÜ SİSTEMİ
+        async function fetchLyrics(title) {
+            const content = document.getElementById('lyricsContent');
+            content.innerText = "Sözler aranıyor...";
+            try {
+                const res = await fetch(`${API_BASE}/lyrics?q=${encodeURIComponent(title)}`);
+                const data = await res.json();
+                if(data.lyrics) content.innerText = data.lyrics;
+                else content.innerText = "Bu şarkının sözleri henüz bulunamadı 😔";
+            } catch(e) { content.innerText = "Sözlere ulaşılamadı."; }
+        }
+        function toggleLyrics() {
+            const modal = document.getElementById('lyricsModal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+            if(modal.style.display === 'flex' && currentIndex >= 0) fetchLyrics(currentPlaylist[currentIndex].title);
+        }
+
+        // SES SPEKTRUMU ÇİZİCİ
+        function setupVisualizer() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            source = audioCtx.createMediaElementSource(audio);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            analyser.fftSize = 64;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function draw() {
+                requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const barWidth = (canvas.width / bufferLength) * 1.5;
+                let x = 0;
+                for(let i = 0; i < bufferLength; i++) {
+                    const barHeight = (dataArray[i] / 255) * canvas.height;
+                    ctx.fillStyle = `rgb(244, 63, 94)`; // Accent Color
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 2;
+                }
+            }
+            draw();
         }
 
         function nextSong() { if(currentIndex < currentPlaylist.length - 1) playSong(currentIndex + 1); }
@@ -183,10 +265,8 @@
 
         audio.ontimeupdate = () => {
             if(!isNaN(audio.duration)) {
-                pSeekBar.max = audio.duration;
-                pSeekBar.value = audio.currentTime;
-                document.getElementById('pCurrent').innerText = fmt(audio.currentTime);
-                document.getElementById('pDuration').innerText = fmt(audio.duration);
+                pSeekBar.max = audio.duration; pSeekBar.value = audio.currentTime;
+                document.getElementById('pCurrent').innerText = fmt(audio.currentTime); document.getElementById('pDuration').innerText = fmt(audio.duration);
             }
         };
 
@@ -195,8 +275,9 @@
 
         function fmt(s) { const m=Math.floor(s/60); const sc=Math.floor(s%60); return `${m}:${sc<10?'0':''}${sc}`; }
         function dl(id, type) { window.location.href = `${API_BASE}/download?id=${encodeURIComponent(id)}&type=${type}`; }
-        function closePlayer() { document.getElementById('playerBar').style.display='none'; audio.pause(); }
+        function closePlayer() { document.getElementById('playerBar').style.display='none'; document.getElementById('lyricsModal').style.display='none'; audio.pause(); }
         searchInput.onkeydown = (e) => { if(e.key==='Enter') triggerSearch(); };
     </script>
 </body>
-</html>
+    </html>
+    
