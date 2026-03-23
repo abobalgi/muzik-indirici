@@ -51,7 +51,7 @@ def download():
         return "ID eksik", 400
     
     # Render IP engeline takılmamak için kullanıcıyı 
-    # güvenli ve hızlı bir indirme servisine yönlendiriyoruz.
+    # güvenli ve hızlı bir indirme servisine yönlendiriyoz.
     # Bu yöntem sunucunu yormaz ve bot kontrolüne takılmaz!
     download_url = f"https://api.vevioz.com/@download/128-mp3/{video_id}"
     return redirect(download_url)
