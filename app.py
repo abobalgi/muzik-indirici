@@ -25,15 +25,27 @@ def search():
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # En alakali 5 sonuc
             search_results = ydl.extract_info(f"ytsearch5:{query}", download=False)
             results = []
             for entry in search_results['entries']:
+                # Süre hatasını burada tam sayıya (int) zorlayarak çözdük
+                duration_val = entry.get('duration')
+                if duration_val:
+                    try:
+                        total_seconds = int(float(duration_val))
+                        mins = total_seconds // 60
+                        secs = total_seconds % 60
+                        duration_str = f"{mins}:{secs:02d}"
+                    except:
+                        duration_str = "00:00"
+                else:
+                    duration_str = "00:00"
+
                 results.append({
                     'id': entry['id'],
                     'title': entry['title'],
                     'thumbnail': entry['thumbnails'][-1]['url'] if entry.get('thumbnails') else '',
-                    'duration': f"{entry.get('duration') // 60}:{entry.get('duration') % 60:02d}" if entry.get('duration') else "00:00"
+                    'duration': duration_str
                 })
             return jsonify(results)
     except Exception as e:
@@ -71,4 +83,4 @@ def download():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
-  
+    
