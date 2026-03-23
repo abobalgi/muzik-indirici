@@ -34,10 +34,14 @@
         .info h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .info p { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
         .info p i { color: var(--primary); }
+        
+        /* Butonları 3'lü yapıya uygun hale getirdik */
         .actions { display: flex; flex-direction: column; gap: 5px; }
-        .btn { border: none; padding: 0 10px; height: 28px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; width: 85px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn { border: none; padding: 0 8px; height: 26px; border-radius: 6px; font-size: 0.65rem; font-weight: 700; cursor: pointer; width: 85px; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn-play { background: rgba(16, 185, 129, 0.2); color: #10b981; }
         .btn-mp3 { background: rgba(244, 63, 94, 0.2); color: var(--accent); }
+        .btn-mp4 { background: rgba(14, 165, 233, 0.2); color: var(--blue); }
+
         .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0c0c0e; border-top: 2px solid var(--accent); padding: 12px 20px; display: none; flex-direction: column; gap: 10px; z-index: 2000; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
         .p-top { display: flex; align-items: center; gap: 12px; }
         .p-top img { width: 45px; height: 45px; border-radius: 6px; }
@@ -56,7 +60,7 @@
     <div class="hero"><h1>Flux<span>Music</span></h1></div>
     <div class="container">
         <div class="search-container">
-            <div class="search-box"><input type="text" id="searchInput" autocomplete="off" placeholder="Şarkı, sanatçı veya link..."><button onclick="triggerSearch()"><i class="fa-solid fa-magnifying-glass"></i></button></div>
+            <div class="search-box"><input type="text" id="searchInput" autocomplete="off" placeholder="Sanatçı, şarkı veya link..."><button onclick="triggerSearch()"><i class="fa-solid fa-magnifying-glass"></i></button></div>
             <div id="suggestionsBox" class="suggestions-box"></div>
         </div>
         
@@ -88,7 +92,6 @@
         let currentIndex = -1;
         let history = JSON.parse(localStorage.getItem('fHist')) || [];
 
-        // Ana ekran (Trendler)
         window.onload = () => { triggerSearch(true); };
 
         searchInput.oninput = (e) => { if(e.target.value) fetchSug(e.target.value); else showHist(); };
@@ -144,6 +147,7 @@
                             <div class="actions">
                                 <button class="btn btn-play" onclick="playSong(${index})"><i class="fa-solid fa-play"></i> Dinle</button>
                                 <button class="btn btn-mp3" onclick="dl('${item.id}', 'audio')"><i class="fa-solid fa-download"></i> MP3</button>
+                                <button class="btn btn-mp4" onclick="dl('${item.id}', 'video')"><i class="fa-solid fa-video"></i> MP4</button>
                             </div>
                         </div>`;
                 });
@@ -186,7 +190,6 @@
             }
         };
 
-        // SEEK SORUNU: Artık kullanıcı çubuğu sürüklediğinde şarkı atlıyor
         pSeekBar.oninput = () => { audio.currentTime = pSeekBar.value; };
         audio.onended = () => { nextSong(); };
 
