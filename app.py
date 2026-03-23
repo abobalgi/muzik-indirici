@@ -1,10 +1,15 @@
-from flask import Flask, request, send_file, jsonify, redirect
+from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 import yt_dlp
 import os
+import uuid
 
 app = Flask(__name__)
 CORS(app)
+
+DOWNLOAD_FOLDER = 'downloads'
+if not os.path.exists(DOWNLOAD_FOLDER):
+    os.makedirs(DOWNLOAD_FOLDER)
 
 @app.route('/search', methods=['GET'])
 def search():
@@ -12,12 +17,10 @@ def search():
     if not query:
         return jsonify({"error": "Sorgu bos"}), 400
 
-    # Arama için daha hafif ve engellenmesi zor ayarlar
     ydl_opts = {
         'format': 'bestaudio/best',
         'quiet': True,
         'extract_flat': True,
-        'force_generic_extractor': False,
     }
 
     try:
@@ -27,10 +30,13 @@ def search():
             for entry in search_results['entries']:
                 duration_val = entry.get('duration')
                 if duration_val:
-                    total_seconds = int(float(duration_val))
-                    mins = total_seconds // 60
-                    secs = total_seconds % 60
-                    duration_str = f"{mins}:{secs:02d}"
+                    try:
+                        total_seconds = int(float(duration_val))
+                        mins = total_seconds // 60
+                        secs = total_seconds % 60
+                        duration_str = f"{mins}:{secs:02d}"
+                    except:
+                        duration_str = "00:00"
                 else:
                     duration_str = "00:00"
 
@@ -48,13 +54,30 @@ def search():
 def download():
     video_id = request.args.get('id')
     if not video_id:
-        return "ID eksik", 400
-    
-    # Render IP engeline takılmamak için kullanıcıyı 
-    # güvenli ve hızlı bir indirme servisine yönlendiriyoz.
-    # Bu yöntem sunucunu yormaz ve bot kontrolüne takılmaz!
-    download_url = f"https://api.vevioz.com/@download/128-mp3/{video_id}"
-    return redirect(download_url)
+        return jsonify({"error": "ID eksik"}), 400
+        
+    video_url = f"https://www.youtube.com/watch?v={video_id}"
+    unique_id = str(uuid.uuid4())
+    output_path = os.path.join(DOWNLOAD_FOLDER, unique_id)
+
+    # SENİN BOTUNUN TAKTİĞİ BURADA
+    # Dönüştürme işlemi yapmadan, doğrudan en iyi ses dosyasını çekiyoruz.
+    ydl_opts = {
+        'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
+        'outtmpl': f'{output_path}.%(ext)s',
+        'noplaylist': True,
+        'quiet': True,
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=True)
+            # yt-dlp'nin kaydettiği gerçek dosya adını alıyoruz
+            final_file = ydl.prepare_filename(info)
+            # İndirilen dosyayı gönderirken mp3 yerine kendi formatında gönderiyoruz
+            return send_file(final_file, as_attachment=True, download_name=f"{info['title']}.{info['ext']}")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
