@@ -60,21 +60,24 @@ def download():
     unique_id = str(uuid.uuid4())
     output_path = os.path.join(DOWNLOAD_FOLDER, unique_id)
 
-    # SENİN BOTUNUN TAKTİĞİ BURADA
-    # Dönüştürme işlemi yapmadan, doğrudan en iyi ses dosyasını çekiyoruz.
+    # İŞTE SİHİRLİ KISIM BURASI:
+    # YouTube'a "Ben sunucu değilim, Android telefonum" diyoruz.
     ydl_opts = {
-        'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
+        'format': 'bestaudio[ext=m4a]/bestaudio/best',
         'outtmpl': f'{output_path}.%(ext)s',
         'noplaylist': True,
         'quiet': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android']  # Android kılığına girdik!
+            }
+        }
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=True)
-            # yt-dlp'nin kaydettiği gerçek dosya adını alıyoruz
             final_file = ydl.prepare_filename(info)
-            # İndirilen dosyayı gönderirken mp3 yerine kendi formatında gönderiyoruz
             return send_file(final_file, as_attachment=True, download_name=f"{info['title']}.{info['ext']}")
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -82,4 +85,4 @@ def download():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
-    
+        
