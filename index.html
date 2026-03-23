@@ -3,74 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeDown | Müzik İndirici</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>VibeDown | Premium Müzik İndirici</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #ff0050; --secondary: #00f2fe; --bg: #0f0f13; --card: rgba(255, 255, 255, 0.04); }
-        body { margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); color: #fff; min-height: 100vh; padding-bottom: 50px; }
-        .header { background: linear-gradient(90deg, var(--primary), var(--secondary)); padding: 40px 20px; text-align: center; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; box-shadow: 0 10px 30px rgba(255,0,80,0.2); }
-        .header h1 { margin: 0; font-size: 2.5rem; font-weight: 800; letter-spacing: 1px; }
-        .header p { margin: 10px 0 0; opacity: 0.9; font-size: 0.9rem; }
-        .container { max-width: 700px; margin: -25px auto 0; padding: 0 20px; position: relative; z-index: 10; }
+        :root { 
+            --bg: #09090b; 
+            --surface: #18181b; 
+            --border: #27272a;
+            --primary: #f43f5e; /* Premium Gül Kurusu/Kırmızı */
+            --secondary: #0ea5e9; /* Premium Mavi */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
         
-        .search-box { display: flex; background: #1a1a24; border-radius: 50px; padding: 5px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
-        .search-box input { flex: 1; background: transparent; border: none; padding: 15px 25px; color: #fff; font-size: 1rem; font-family: 'Poppins', sans-serif; outline: none; }
-        .search-box button { background: linear-gradient(45deg, var(--primary), #ff4a7d); border: none; width: 50px; height: 50px; border-radius: 50%; color: white; font-size: 1.2rem; cursor: pointer; transition: 0.3s; }
-        .search-box button:active { transform: scale(0.9); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            padding-bottom: 80px;
+            -webkit-font-smoothing: antialiased;
+        }
 
+        /* Havalı Üst Kısım */
+        .hero {
+            padding: 50px 20px 40px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(244,63,94,0.15) 0%, rgba(9,9,11,1) 100%);
+        }
+        .hero h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+        .hero h1 span { color: var(--primary); }
+        .hero p { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 0 20px; }
+
+        /* Arama Kutusu & Öneriler - Tam Orantılı */
+        .search-container {
+            position: relative;
+            margin-top: -15px;
+            z-index: 100;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 6px 6px 6px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 10px 40px rgba(244,63,94,0.2);
+        }
+        .search-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            width: 100%;
+        }
+        .search-box input::placeholder { color: #52525b; }
+        .search-box button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .search-box button:active { transform: scale(0.92); }
+
+        /* Klavye Önerileri & Geçmiş (MYT Tarzı) */
+        .suggestions-box {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-top: 8px;
+            overflow: hidden;
+            display: none;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+        .suggestion-item {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+        .suggestion-item:hover { background: rgba(255,255,255,0.05); }
+        .suggestion-item i { color: var(--text-muted); font-size: 1rem; width: 16px; text-align: center;}
+        .history-icon { color: var(--secondary) !important; }
+
+        /* Yükleniyor Animasyonu */
         .loader { display: none; text-align: center; margin: 40px 0; }
-        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        .spinner { 
+            width: 36px; height: 36px; 
+            border: 3px solid var(--border); 
+            border-top-color: var(--primary); 
+            border-radius: 50%; 
+            animation: spin 0.8s linear infinite; 
+            margin: 0 auto 12px; 
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .results { margin-top: 30px; display: flex; flex-direction: column; gap: 15px; }
-        .card { background: var(--card); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 15px; display: flex; gap: 15px; align-items: center; backdrop-filter: blur(10px); transition: 0.3s; }
-        .card:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
-        .card img { width: 80px; height: 80px; border-radius: 15px; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .info { flex: 1; overflow: hidden; }
-        .info h3 { margin: 0 0 5px; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .info p { margin: 0; font-size: 12px; color: #aaa; }
-        .info p i { margin-right: 5px; color: var(--secondary); }
+        /* Sonuç Kartları - Kusursuz Hizalama */
+        .results { margin-top: 30px; display: flex; flex-direction: column; gap: 12px; }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .card:active { transform: scale(0.98); }
+        .card img {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .info { flex: 1; min-width: 0; /* Yazıların taşmasını engeller */ }
+        .info h3 { 
+            margin: 0 0 4px; 
+            font-size: 0.95rem; 
+            font-weight: 600;
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        .info p { margin: 0; font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;}
         
-        .actions { display: flex; flex-direction: column; gap: 8px; }
-        .btn { border: none; padding: 8px 12px; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; width: 90px;}
-        .btn-mp3 { background: rgba(255, 0, 80, 0.2); color: #ff4a7d; border: 1px solid rgba(255, 0, 80, 0.3); }
-        .btn-mp3:hover { background: #ff0050; color: white; }
-        .btn-mp4 { background: rgba(0, 242, 254, 0.1); color: #00f2fe; border: 1px solid rgba(0, 242, 254, 0.3); }
-        .btn-mp4:hover { background: #00f2fe; color: #000; }
+        /* İndirme Butonları */
+        .actions { display: flex; flex-direction: column; gap: 6px; }
+        .btn {
+            border: none;
+            padding: 0 12px;
+            height: 32px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+            width: 85px;
+        }
+        .btn-mp3 { background: rgba(244, 63, 94, 0.1); color: var(--primary); }
+        .btn-mp3:hover, .btn-mp3:active { background: var(--primary); color: white; }
+        
+        .btn-mp4 { background: rgba(14, 165, 233, 0.1); color: var(--secondary); }
+        .btn-mp4:hover, .btn-mp4:active { background: var(--secondary); color: white; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>VibeDown</h1>
-        <p>Müzik ve Klipleri Ücretsiz Keşfet</p>
+    <div class="hero">
+        <h1>Vibe<span>Down</span></h1>
+        <p>Sınırsız müzik, premium kalite.</p>
     </div>
 
     <div class="container">
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Şarkı, sanatçı veya link yaz...">
-            <button onclick="searchMedia()"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" autocomplete="off" placeholder="Batuflex, Uzi veya link...">
+                <button onclick="triggerSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+            
+            <div id="suggestionsBox" class="suggestions-box"></div>
         </div>
 
         <div class="loader" id="loader">
             <div class="spinner"></div>
-            <span style="color: #aaa; font-size: 13px;">Evrende aranıyor...</span>
+            <span style="color: var(--text-muted); font-size: 0.85rem;">Şarkılar getiriliyor...</span>
         </div>
 
         <div class="results" id="results"></div>
     </div>
 
     <script>
-        // Netlify'ın yönlendirme (proxy) sistemi sayesinde HTTP hatası almayacağız!
         const API_BASE = "/api"; 
+        
+        // --- ARAMA GEÇMİŞİ VE ÖNERİ SİSTEMİ ---
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsBox = document.getElementById('suggestionsBox');
+        let searchHistory = JSON.parse(localStorage.getItem('vibeHistory')) || [];
 
-        async function searchMedia() {
-            const q = document.getElementById('searchInput').value;
+        // Kullanıcı klavyede yazı yazarken
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            if(val.length > 0) {
+                fetchYouTubeSuggestions(val); // YouTube'dan öneri çek
+            } else {
+                showHistory(); // Boşsa geçmişi göster
+            }
+        });
+
+        // Arama kutusuna tıklandığında (Odaklanıldığında)
+        searchInput.addEventListener('focus', () => {
+            if(searchInput.value.trim() === '') showHistory();
+            else fetchYouTubeSuggestions(searchInput.value.trim());
+        });
+
+        // Ekranda boş bir yere tıklayınca öneri kutusunu kapat
+        document.addEventListener('click', (e) => {
+            if(!e.target.closest('.search-container')) {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+
+        // Geçmişi Göster
+        function showHistory() {
+            if(searchHistory.length === 0) {
+                suggestionsBox.style.display = 'none';
+                return;
+            }
+            suggestionsBox.innerHTML = searchHistory.map(item => `
+                <div class="suggestion-item" onclick="selectSuggestion('${item}')">
+                    <i class="fa-solid fa-clock-rotate-left history-icon"></i> <span>${item}</span>
+                </div>
+            `).join('');
+            suggestionsBox.style.display = 'block';
+        }
+
+        // YouTube'dan Canlı Öneri Çekme (JSONP Mantığı)
+        function fetchYouTubeSuggestions(query) {
+            const script = document.createElement('script');
+            // Google/YouTube altyapısına bağlanıyoruz
+            script.src = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(query)}&jsonp=handleSuggestions`;
+            document.head.appendChild(script);
+        }
+
+        // YouTube'dan gelen veriyi ekrana basma
+        window.handleSuggestions = function(data) {
+            const suggestions = data[1]; // Gelen öneri listesi
+            if(suggestions.length === 0) {
+                suggestionsBox.style.display = 'none';
+                return;
+            }
+            suggestionsBox.innerHTML = suggestions.slice(0, 6).map(item => `
+                <div class="suggestion-item" onclick="selectSuggestion('${item}')">
+                    <i class="fa-solid fa-magnifying-glass"></i> <span>${item}</span>
+                </div>
+            `).join('');
+            suggestionsBox.style.display = 'block';
+        }
+
+        // Önerilen kelimeye tıklanınca
+        function selectSuggestion(text) {
+            searchInput.value = text;
+            suggestionsBox.style.display = 'none';
+            triggerSearch(); // Otomatik aramayı başlat
+        }
+
+        // --- ARAMA VE İNDİRME MOTORU ---
+        async function triggerSearch() {
+            const q = searchInput.value.trim();
+            if(!q) return;
+
+            // Başarılı aramayı geçmişe kaydet (Sadece son 5 aramayı tutar)
+            searchHistory = [q, ...searchHistory.filter(item => item !== q)].slice(0, 5);
+            localStorage.setItem('vibeHistory', JSON.stringify(searchHistory));
+            suggestionsBox.style.display = 'none';
+
             const resDiv = document.getElementById('results');
             const loader = document.getElementById('loader');
-            
-            if(!q) return;
             
             resDiv.innerHTML = "";
             loader.style.display = "block";
@@ -82,34 +305,56 @@
                 if(data.error) throw new Error(data.error);
 
                 data.forEach(item => {
-                    const sourceIcon = item.source === 'youtube' ? '<i class="fa-brands fa-youtube" style="color:#ff0000;"></i>' : '<i class="fa-brands fa-soundcloud" style="color:#ff5500;"></i>';
+                    const sourceIcon = item.source === 'youtube' ? '<i class="fa-brands fa-youtube" style="color:#f43f5e;"></i>' : '<i class="fa-brands fa-soundcloud" style="color:#f97316;"></i>';
 
                     resDiv.innerHTML += `
                         <div class="card">
-                            <img src="${item.thumbnail}">
+                            <img src="${item.thumbnail}" loading="lazy">
                             <div class="info">
                                 <h3>${item.title}</h3>
                                 <p>${sourceIcon} Süre: ${item.duration}</p>
                             </div>
                             <div class="actions">
-                                <button class="btn btn-mp3" onclick="downloadFile('${item.id}', '${item.source}', 'audio', this)"><i class="fa-solid fa-music"></i> MP3</button>
-                                <button class="btn btn-mp4" onclick="downloadFile('${item.id}', '${item.source}', 'video', this)"><i class="fa-solid fa-video"></i> MP4</button>
+                                <button class="btn btn-mp3" onclick="downloadFile('${item.id}', '${item.source}', 'audio', this)">
+                                    <i class="fa-solid fa-music"></i> MP3
+                                </button>
+                                <button class="btn btn-mp4" onclick="downloadFile('${item.id}', '${item.source}', 'video', this)">
+                                    <i class="fa-solid fa-video"></i> MP4
+                                </button>
                             </div>
                         </div>`;
                 });
             } catch (e) { 
-                resDiv.innerHTML = `<p style="text-align:center; color:#ff4a7d;"><i class="fa-solid fa-triangle-exclamation"></i> Sunucu hatası veya sonuç bulunamadı.</p>`; 
+                resDiv.innerHTML = `
+                    <div style="text-align:center; padding: 20px; color: var(--text-muted);">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
+                        <p>Sunucuya ulaşılamadı. Wispbyte uyuyor olabilir.</p>
+                    </div>`; 
             } finally { 
                 loader.style.display = "none"; 
             }
         }
 
+        // İndirme Butonu Aksiyonu
         function downloadFile(id, source, type, btn) {
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Bekle...';
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.style.opacity = '0.7';
+            
             window.location.href = `${API_BASE}/download?id=${encodeURIComponent(id)}&source=${source}&type=${type}`;
-            setTimeout(() => { btn.innerHTML = originalText; }, 5000);
+            
+            setTimeout(() => { 
+                btn.innerHTML = originalHTML; 
+                btn.style.opacity = '1';
+            }, 6000);
         }
+
+        // Enter tuşuna basınca arama yapması için
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                triggerSearch();
+            }
+        });
     </script>
 </body>
 </html>
