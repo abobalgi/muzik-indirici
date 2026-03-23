@@ -3,228 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeDown | Premium Müzik İndirici</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <title>Flux Music | Premium Dinle & İndir</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
-            --bg: #09090b; --surface: #18181b; --border: #27272a;
-            --primary: #f43f5e; --secondary: #0ea5e9; --success: #10b981;
-            --text-main: #f8fafc; --text-muted: #94a3b8;
+            --bg: #0b0b0e; --surface: #1a1a1f; --border: #2a2a32;
+            --primary: #fbbf24; /* SARI SAAT RENGİ */
+            --accent: #f43f5e; --blue: #0ea5e9; --text: #f8fafc; --muted: #94a3b8;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); min-height: 100vh; padding-bottom: 100px; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 150px; }
 
-        .hero { padding: 50px 20px 40px; text-align: center; background: linear-gradient(180deg, rgba(244,63,94,0.15) 0%, rgba(9,9,11,1) 100%); }
-        .hero h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
-        .hero h1 span { color: var(--primary); }
-        .hero p { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+        .hero { padding: 40px 20px; text-align: center; }
+        .hero h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -1.5px; }
+        .hero h1 span { color: var(--accent); }
+        .hero p { color: var(--muted); font-size: 0.85rem; margin-top: 5px; }
 
-        .container { max-width: 600px; margin: 0 auto; padding: 0 20px; }
-        .search-container { position: relative; margin-top: -15px; z-index: 100; }
-        .search-box { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 6px 6px 6px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .search-box:focus-within { border-color: var(--primary); }
-        .search-box input { flex: 1; background: transparent; border: none; color: var(--text-main); font-size: 1rem; font-family: 'Inter', sans-serif; outline: none; width: 100%; }
-        .search-box button { background: var(--primary); color: white; border: none; width: 44px; height: 44px; border-radius: 12px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        
-        .suggestions-box { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin-top: 8px; overflow: hidden; display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-        .suggestion-item { padding: 14px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; font-size: 0.95rem; }
-        .suggestion-item:hover { background: rgba(255,255,255,0.05); }
-        .suggestion-item i { color: var(--text-muted); width: 16px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 0 15px; }
+        .search-box { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 6px 6px 6px 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+        .search-box input { flex: 1; background: transparent; border: none; color: #fff; font-size: 1rem; outline: none; }
+        .search-box button { background: var(--accent); color: white; border: none; width: 42px; height: 42px; border-radius: 10px; cursor: pointer; }
 
-        .loader { display: none; text-align: center; margin: 40px 0; }
-        .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .results { margin-top: 30px; display: flex; flex-direction: column; gap: 12px; }
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px; display: flex; gap: 15px; align-items: center; }
-        .card img { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; }
+        .results { margin-top: 25px; display: flex; flex-direction: column; gap: 12px; }
+        .card { background: var(--surface); border-radius: 16px; padding: 12px; display: flex; gap: 15px; align-items: center; border: 1px solid var(--border); }
+        .card img { width: 68px; height: 68px; border-radius: 10px; object-fit: cover; }
         .info { flex: 1; min-width: 0; }
-        .info h3 { margin: 0 0 4px; font-size: 0.95rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .info p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
-        
-        .actions { display: flex; flex-direction: column; gap: 6px; }
-        .btn { border: none; padding: 0 12px; height: 30px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 85px; }
-        .btn-play { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-        .btn-play:hover { background: var(--success); color: white; }
-        .btn-mp3 { background: rgba(244, 63, 94, 0.1); color: var(--primary); }
-        .btn-mp3:hover { background: var(--primary); color: white; }
-        .btn-mp4 { background: rgba(14, 165, 233, 0.1); color: var(--secondary); }
-        .btn-mp4:hover { background: var(--secondary); color: white; }
+        .info h3 { font-size: 0.95rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .info p { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+        .info p i { color: var(--primary); font-size: 0.9rem; } /* SARI SAAT */
 
-        /* CANLI MÜZİK ÇALAR (Alt Bar) */
-        .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 15px; transform: translateY(100%); transition: transform 0.3s ease; z-index: 1000; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
-        .player-bar img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
-        .player-info { flex: 1; min-width: 0; }
-        .player-info h4 { margin: 0 0 2px; font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .player-info p { margin: 0; font-size: 0.75rem; color: var(--primary); }
-        .player-bar audio { height: 35px; width: 100%; max-width: 250px; outline: none; }
-        .close-player { background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 5px; }
+        .actions { display: flex; flex-direction: column; gap: 6px; }
+        .btn { border: none; padding: 0 12px; height: 30px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; width: 85px; }
+        .btn-play { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .btn-mp3 { background: rgba(244, 63, 94, 0.15); color: var(--accent); }
+        .btn-mp4 { background: rgba(14, 165, 233, 0.15); color: var(--blue); }
+
+        /* GELİŞMİŞ VE PROFESYONEL PLAYER (Sıkışıklık Giderildi) */
+        .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #121216; border-top: 3px solid var(--accent); padding: 15px 20px; display: none; flex-direction: column; gap: 10px; z-index: 1000; box-shadow: 0 -15px 40px rgba(0,0,0,0.8); }
+        .player-top { display: flex; align-items: center; gap: 15px; }
+        .player-top img { width: 50px; height: 50px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .player-meta { flex: 1; min-width: 0; }
+        .player-meta h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-meta p { font-size: 0.7rem; color: var(--accent); }
+        
+        .progress-box { width: 100%; display: flex; align-items: center; gap: 12px; }
+        .progress-box span { font-size: 0.7rem; color: var(--muted); font-family: monospace; min-width: 35px; }
+        .seek-bar { flex: 1; height: 6px; appearance: none; background: #2a2a32; border-radius: 10px; outline: none; cursor: pointer; }
+        .seek-bar::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; border: 3px solid #fff; }
+
+        .player-controls { display: flex; justify-content: center; gap: 35px; align-items: center; padding-top: 5px; }
+        .ctrl-btn { background: transparent; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; }
+        .pp-btn { font-size: 2.5rem; color: var(--accent); }
     </style>
 </head>
 <body>
 
     <div class="hero">
-        <h1>Vibe<span>Down</span></h1>
-        <p>Spotify linki, Youtube linki veya sanatçı adı yaz...</p>
+        <h1>Flux<span>Music</span></h1>
+        <p>Premium müzik ve klip evreni.</p>
     </div>
 
     <div class="container">
-        <div class="search-container">
-            <div class="search-box">
-                <input type="text" id="searchInput" autocomplete="off" placeholder="Batuflex veya Spotify Linki...">
-                <button onclick="triggerSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
-            </div>
-            <div id="suggestionsBox" class="suggestions-box"></div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Şarkı, sanatçı veya link...">
+            <button onclick="triggerSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
         </div>
-        <div class="loader" id="loader">
-            <div class="spinner"></div>
-            <span style="color: var(--text-muted); font-size: 0.85rem;">Müzikler aranıyor...</span>
-        </div>
-        <div class="results" id="results"></div>
+        <div id="results" class="results"></div>
     </div>
 
     <div class="player-bar" id="playerBar">
-        <img id="playerImg" src="" alt="Kapak">
-        <div class="player-info">
-            <h4 id="playerTitle">Şarkı Adı</h4>
-            <p><i class="fa-solid fa-headphones"></i> Şu an çalıyor</p>
+        <div class="player-top">
+            <img id="pImg" src="">
+            <div class="player-meta">
+                <h4 id="pTitle">Seçilmedi</h4>
+                <p><i class="fa-solid fa-bolt"></i> Flux Oynatıcı</p>
+            </div>
+            <button onclick="closePlayer()" style="background:none; border:none; color:var(--muted); font-size: 1.2rem;"><i class="fa-solid fa-chevron-down"></i></button>
         </div>
-        <audio id="audioPlayer" controls controlsList="nodownload"></audio>
-        <button onclick="closePlayer()" class="close-player"><i class="fa-solid fa-xmark"></i></button>
+        
+        <div class="progress-box">
+            <span id="currentTime">0:00</span>
+            <input type="range" class="seek-bar" id="seekBar" value="0" step="1">
+            <span id="durationTime">0:00</span>
+        </div>
+
+        <div class="player-controls">
+            <button class="ctrl-btn" onclick="seek(-10)"><i class="fa-solid fa-backward-rotate-left"></i></button>
+            <button class="ctrl-btn pp-btn" onclick="toggle()" id="ppBtn"><i class="fa-solid fa-circle-play"></i></button>
+            <button class="ctrl-btn" onclick="seek(10)"><i class="fa-solid fa-forward-rotate-right"></i></button>
+        </div>
     </div>
 
+    <audio id="audio" style="display:none;"></audio>
+
     <script>
-        const API_BASE = "/api"; 
-        const searchInput = document.getElementById('searchInput');
-        const suggestionsBox = document.getElementById('suggestionsBox');
-        let searchHistory = JSON.parse(localStorage.getItem('vibeHistory')) || [];
-
-        searchInput.addEventListener('input', (e) => {
-            const val = e.target.value.trim();
-            if(val.length > 0 && !val.includes('spotify.com')) { fetchYouTubeSuggestions(val); } 
-            else { showHistory(); }
-        });
-
-        searchInput.addEventListener('focus', () => {
-            if(searchInput.value.trim() === '' || searchInput.value.includes('spotify.com')) showHistory();
-            else fetchYouTubeSuggestions(searchInput.value.trim());
-        });
-
-        document.addEventListener('click', (e) => {
-            if(!e.target.closest('.search-container')) suggestionsBox.style.display = 'none';
-        });
-
-        function showHistory() {
-            if(searchHistory.length === 0) { suggestionsBox.style.display = 'none'; return; }
-            suggestionsBox.innerHTML = searchHistory.map(item => `
-                <div class="suggestion-item" onclick="selectSuggestion('${item.replace(/'/g, "\\'")}')">
-                    <i class="fa-solid fa-clock-rotate-left" style="color:var(--secondary);"></i> <span>${item}</span>
-                </div>
-            `).join('');
-            suggestionsBox.style.display = 'block';
-        }
-
-        function fetchYouTubeSuggestions(query) {
-            const script = document.createElement('script');
-            script.src = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(query)}&jsonp=handleSuggestions`;
-            document.head.appendChild(script);
-        }
-
-        window.handleSuggestions = function(data) {
-            const suggestions = data[1];
-            if(suggestions.length === 0) { suggestionsBox.style.display = 'none'; return; }
-            suggestionsBox.innerHTML = suggestions.slice(0, 5).map(item => `
-                <div class="suggestion-item" onclick="selectSuggestion('${item.replace(/'/g, "\\'")}')">
-                    <i class="fa-solid fa-magnifying-glass"></i> <span>${item}</span>
-                </div>
-            `).join('');
-            suggestionsBox.style.display = 'block';
-        }
-
-        function selectSuggestion(text) {
-            searchInput.value = text;
-            suggestionsBox.style.display = 'none';
-            triggerSearch();
-        }
-
+        const API_BASE = "/api";
+        const audio = document.getElementById('audio');
+        const seekBar = document.getElementById('seekBar');
+        
         async function triggerSearch() {
-            const q = searchInput.value.trim();
+            const q = document.getElementById('searchInput').value.trim();
             if(!q) return;
-
-            searchHistory = [q, ...searchHistory.filter(item => item !== q)].slice(0, 5);
-            localStorage.setItem('vibeHistory', JSON.stringify(searchHistory));
-            suggestionsBox.style.display = 'none';
-
             const resDiv = document.getElementById('results');
-            const loader = document.getElementById('loader');
-            resDiv.innerHTML = ""; loader.style.display = "block";
-            
+            resDiv.innerHTML = '<p style="text-align:center; padding:30px; color:var(--muted); opacity:0.6;">Flux taranıyor...</p>';
             try {
                 const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}`);
                 const data = await res.json();
-                if(data.error) throw new Error(data.error);
-
+                resDiv.innerHTML = "";
                 data.forEach(item => {
-                    const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     resDiv.innerHTML += `
                         <div class="card">
-                            <img src="${item.thumbnail}" loading="lazy">
+                            <img src="${item.thumbnail}">
                             <div class="info">
                                 <h3>${item.title}</h3>
-                                <p><i class="fa-brands fa-youtube" style="color:var(--primary);"></i> ${item.duration}</p>
+                                <p><i class="fa-solid fa-clock"></i> ${item.duration}</p>
                             </div>
                             <div class="actions">
-                                <button class="btn btn-play" onclick="playSong('${item.id}', '${item.source}', '${safeTitle}', '${item.thumbnail}')">
-                                    <i class="fa-solid fa-play"></i> Dinle
-                                </button>
-                                <button class="btn btn-mp3" onclick="downloadFile('${item.id}', '${item.source}', 'audio', this)">
-                                    <i class="fa-solid fa-music"></i> MP3
-                                </button>
-                                <button class="btn btn-mp4" onclick="downloadFile('${item.id}', '${item.source}', 'video', this)">
-                                    <i class="fa-solid fa-video"></i> MP4
-                                </button>
+                                <button class="btn btn-play" onclick="initP('${item.id}', '${item.title.replace(/'/g,"")}', '${item.thumbnail}')"><i class="fa-solid fa-play"></i> Dinle</button>
+                                <button class="btn btn-mp3" onclick="dl('${item.id}', 'audio')"><i class="fa-solid fa-music"></i> MP3</button>
+                                <button class="btn btn-mp4" onclick="dl('${item.id}', 'video')"><i class="fa-solid fa-video"></i> MP4</button>
                             </div>
                         </div>`;
                 });
-            } catch (e) { 
-                resDiv.innerHTML = `<div style="text-align:center; padding:20px;"><i class="fa-solid fa-triangle-exclamation" style="font-size:2rem; color:var(--primary); margin-bottom:10px;"></i><p>Sunucu hatası veya bulunamadı.</p></div>`; 
-            } finally { loader.style.display = "none"; }
+            } catch(e) { resDiv.innerHTML = "Sunucuya ulaşılamadı."; }
         }
 
-        function downloadFile(id, source, type, btn) {
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.style.opacity = '0.7';
-            window.location.href = `${API_BASE}/download?id=${encodeURIComponent(id)}&source=${source}&type=${type}`;
-            setTimeout(() => { btn.innerHTML = originalHTML; btn.style.opacity = '1'; }, 6000);
-        }
-
-        // CANLI MÜZİK ÇALAR FONKSİYONU
-        async function playSong(id, source, title, thumbnail) {
-            const playerBar = document.getElementById('playerBar');
-            const audioPlayer = document.getElementById('audioPlayer');
-            
-            playerBar.style.transform = 'translateY(0)';
-            document.getElementById('playerImg').src = thumbnail;
-            document.getElementById('playerTitle').innerText = title;
-            audioPlayer.src = ""; 
-            
+        async function initP(id, title, thumb) {
+            document.getElementById('playerBar').style.display = 'flex';
+            document.getElementById('pTitle').innerText = title;
+            document.getElementById('pImg').src = thumb;
+            document.getElementById('ppBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
             try {
-                const res = await fetch(`${API_BASE}/stream?id=${encodeURIComponent(id)}&source=${source}`);
+                const res = await fetch(`${API_BASE}/stream?id=${encodeURIComponent(id)}`);
                 const data = await res.json();
-                if(data.url) {
-                    audioPlayer.src = data.url;
-                    audioPlayer.play();
-                } else { alert("Bu şarkı şu an çalınamıyor."); }
-            } catch(e) { alert("Bağlantı hatası."); }
+                audio.src = data.url; audio.play();
+                document.getElementById('ppBtn').innerHTML = '<i class="fa-solid fa-circle-pause"></i>';
+            } catch(e) { alert("Oynatılamıyor."); }
         }
 
-        function closePlayer() {
-            document.getElementById('playerBar').style.transform = 'translateY(100%)';
-            document.getElementById('audioPlayer').pause();
+        function toggle() {
+            if(audio.paused) { audio.play(); document.getElementById('ppBtn').innerHTML = '<i class="fa-solid fa-circle-pause"></i>'; }
+            else { audio.pause(); document.getElementById('ppBtn').innerHTML = '<i class="fa-solid fa-circle-play"></i>'; }
         }
 
-        searchInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') triggerSearch(); });
+        audio.addEventListener('timeupdate', () => {
+            const cur = audio.currentTime; const dur = audio.duration;
+            if(!isNaN(dur)) {
+                seekBar.max = dur; seekBar.value = cur;
+                document.getElementById('currentTime').innerText = fmt(cur);
+                document.getElementById('durationTime').innerText = fmt(dur);
+            }
+        });
+
+        seekBar.addEventListener('input', () => { audio.currentTime = seekBar.value; });
+        function fmt(s) { const min = Math.floor(s/60); const sec = Math.floor(s%60); return `${min}:${sec<10?'0':''}${sec}`; }
+        function dl(id, type) { window.location.href = `${API_BASE}/download?id=${encodeURIComponent(id)}&type=${type}`; }
+        function closePlayer() { document.getElementById('playerBar').style.display = 'none'; audio.pause(); }
+        function seek(v) { audio.currentTime += v; }
+        document.getElementById('searchInput').onkeydown = (e) => { if(e.key==='Enter') triggerSearch(); };
     </script>
 </body>
-</html>
+    </html>
+    
