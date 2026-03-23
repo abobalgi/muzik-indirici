@@ -3,81 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MusicFlow | Ritmi Yakala</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>VibeDown | Müzik İndirici</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #1DB954; --bg: #0b0b0b; --glass: rgba(255, 255, 255, 0.05); }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: #000; color: #fff; min-height: 100vh; overflow-x: hidden; }
-        .container { max-width: 600px; margin: 0 auto; padding: 30px 15px; text-align: center; }
-        h1 { font-size: 2.5rem; background: linear-gradient(to right, #1DB954, #19e68c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; }
-        .search-wrapper { position: relative; margin: 25px 0; }
-        input { width: 100%; padding: 15px 20px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); background: var(--glass); color: #fff; outline: none; box-sizing: border-box; }
-        .search-btn { position: absolute; right: 5px; top: 5px; background: var(--primary); border: none; width: 40px; height: 40px; border-radius: 50%; color: #fff; cursor: pointer; }
+        :root { --primary: #ff0050; --secondary: #00f2fe; --bg: #0f0f13; --card: rgba(255, 255, 255, 0.04); }
+        body { margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); color: #fff; min-height: 100vh; padding-bottom: 50px; }
+        .header { background: linear-gradient(90deg, var(--primary), var(--secondary)); padding: 40px 20px; text-align: center; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; box-shadow: 0 10px 30px rgba(255,0,80,0.2); }
+        .header h1 { margin: 0; font-size: 2.5rem; font-weight: 800; letter-spacing: 1px; }
+        .header p { margin: 10px 0 0; opacity: 0.9; font-size: 0.9rem; }
+        .container { max-width: 700px; margin: -25px auto 0; padding: 0 20px; position: relative; z-index: 10; }
         
-        /* Animasyon */
-        .loader-wrapper { display: none; flex-direction: column; align-items: center; margin: 30px 0; }
-        .waves { display: flex; gap: 4px; height: 40px; align-items: center; }
-        .waves span { width: 4px; height: 15px; background: var(--primary); border-radius: 10px; animation: wave 1s infinite alternate; }
-        .waves span:nth-child(2) { animation-delay: 0.2s; }
-        .waves span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes wave { from { height: 10px; opacity: 0.4; } to { height: 40px; opacity: 1; } }
+        .search-box { display: flex; background: #1a1a24; border-radius: 50px; padding: 5px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+        .search-box input { flex: 1; background: transparent; border: none; padding: 15px 25px; color: #fff; font-size: 1rem; font-family: 'Poppins', sans-serif; outline: none; }
+        .search-box button { background: linear-gradient(45deg, var(--primary), #ff4a7d); border: none; width: 50px; height: 50px; border-radius: 50%; color: white; font-size: 1.2rem; cursor: pointer; transition: 0.3s; }
+        .search-box button:active { transform: scale(0.9); }
 
-        #results { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .card { background: var(--glass); padding: 12px; border-radius: 15px; display: flex; align-items: center; gap: 15px; text-align: left; }
-        .card img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; }
-        .card-info { flex: 1; overflow: hidden; }
-        .card-info h3 { font-size: 14px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .dl-btn { background: #fff; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; min-width: 70px; }
+        .loader { display: none; text-align: center; margin: 40px 0; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .results { margin-top: 30px; display: flex; flex-direction: column; gap: 15px; }
+        .card { background: var(--card); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 15px; display: flex; gap: 15px; align-items: center; backdrop-filter: blur(10px); transition: 0.3s; }
+        .card:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+        .card img { width: 80px; height: 80px; border-radius: 15px; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .info { flex: 1; overflow: hidden; }
+        .info h3 { margin: 0 0 5px; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .info p { margin: 0; font-size: 12px; color: #aaa; }
+        .info p i { margin-right: 5px; color: var(--secondary); }
+        
+        .actions { display: flex; flex-direction: column; gap: 8px; }
+        .btn { border: none; padding: 8px 12px; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; width: 90px;}
+        .btn-mp3 { background: rgba(255, 0, 80, 0.2); color: #ff4a7d; border: 1px solid rgba(255, 0, 80, 0.3); }
+        .btn-mp3:hover { background: #ff0050; color: white; }
+        .btn-mp4 { background: rgba(0, 242, 254, 0.1); color: #00f2fe; border: 1px solid rgba(0, 242, 254, 0.3); }
+        .btn-mp4:hover { background: #00f2fe; color: #000; }
     </style>
 </head>
 <body>
+
+    <div class="header">
+        <h1>VibeDown</h1>
+        <p>Müzik ve Klipleri Ücretsiz Keşfet</p>
+    </div>
+
     <div class="container">
-        <h1>MusicFlow</h1>
-        <p style="color: #888;">Ücretsiz ve Yüksek Kalite</p>
-        <div class="search-wrapper">
-            <input type="text" id="searchInput" placeholder="Şarkı veya sanatçı adı...">
-            <button class="search-btn" onclick="searchMusic()"><i class="fas fa-search"></i></button>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Şarkı, sanatçı veya link yaz...">
+            <button onclick="searchMedia()"><i class="fa-solid fa-magnifying-glass"></i></button>
         </div>
-        <div class="loader-wrapper" id="mainLoader">
-            <div class="waves"><span></span><span></span><span></span><span></span></div>
-            <p style="color: var(--primary); margin-top: 10px; font-size: 13px;">Ritim Aranıyor...</p>
+
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <span style="color: #aaa; font-size: 13px;">Evrende aranıyor...</span>
         </div>
-        <div id="results"></div>
+
+        <div class="results" id="results"></div>
     </div>
 
     <script>
-        let API_BASE = "https://muzik-backend-kvii.onrender.com"; 
+        // Netlify'ın yönlendirme (proxy) sistemi sayesinde HTTP hatası almayacağız!
+        const API_BASE = "/api"; 
 
-        async function searchMusic() {
+        async function searchMedia() {
             const q = document.getElementById('searchInput').value;
             const resDiv = document.getElementById('results');
-            const loader = document.getElementById('mainLoader');
+            const loader = document.getElementById('loader');
+            
             if(!q) return;
+            
             resDiv.innerHTML = "";
-            loader.style.display = "flex";
+            loader.style.display = "block";
+            
             try {
                 const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}`);
                 const data = await res.json();
+                
+                if(data.error) throw new Error(data.error);
+
                 data.forEach(item => {
+                    const sourceIcon = item.source === 'youtube' ? '<i class="fa-brands fa-youtube" style="color:#ff0000;"></i>' : '<i class="fa-brands fa-soundcloud" style="color:#ff5500;"></i>';
+
                     resDiv.innerHTML += `
                         <div class="card">
                             <img src="${item.thumbnail}">
-                            <div class="card-info">
+                            <div class="info">
                                 <h3>${item.title}</h3>
-                                <p style="font-size:11px; color:#888; margin:5px 0 0 0;">Süre: ${item.duration}</p>
+                                <p>${sourceIcon} Süre: ${item.duration}</p>
                             </div>
-                            <button class="dl-btn" onclick="downloadMusic('${item.id}', this)">İndir</button>
+                            <div class="actions">
+                                <button class="btn btn-mp3" onclick="downloadFile('${item.id}', '${item.source}', 'audio', this)"><i class="fa-solid fa-music"></i> MP3</button>
+                                <button class="btn btn-mp4" onclick="downloadFile('${item.id}', '${item.source}', 'video', this)"><i class="fa-solid fa-video"></i> MP4</button>
+                            </div>
                         </div>`;
                 });
-            } catch (e) { alert("Sunucu uyanıyor olabilir, lütfen 10 saniye sonra tekrar deneyin."); }
-            finally { loader.style.display = "none"; }
+            } catch (e) { 
+                resDiv.innerHTML = `<p style="text-align:center; color:#ff4a7d;"><i class="fa-solid fa-triangle-exclamation"></i> Sunucu hatası veya sonuç bulunamadı.</p>`; 
+            } finally { 
+                loader.style.display = "none"; 
+            }
         }
 
-        function downloadMusic(id, btn) {
-            btn.innerText = "...";
-            window.location.href = `${API_BASE}/download?id=${id}`;
-            setTimeout(() => { btn.innerText = "İndir"; }, 8000);
+        function downloadFile(id, source, type, btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Bekle...';
+            window.location.href = `${API_BASE}/download?id=${encodeURIComponent(id)}&source=${source}&type=${type}`;
+            setTimeout(() => { btn.innerHTML = originalText; }, 5000);
         }
     </script>
 </body>
