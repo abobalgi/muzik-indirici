@@ -42,10 +42,7 @@
         .play-overlay i { color: #fff; font-size: 1.5rem; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         
         .track-info { flex: 1; min-width: 0; padding-right: 5px; }
-        
-        /* DÜZELTİLDİ: Şarkı isimleri artık tam görünecek ve alt satıra geçecek */
         .track-info h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; color: #fff; line-height: 1.3; word-wrap: break-word; }
-        
         .track-info p { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
         
         .track-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
@@ -54,15 +51,10 @@
         
         .btn-play-sm { background: rgba(16, 185, 129, 0.1); color: var(--green); }
         .btn-play-sm:hover { background: var(--green); color: #fff; }
-        
         .btn-mp3 { background: rgba(244, 63, 94, 0.1); color: var(--accent); }
         .btn-mp3:hover { background: var(--accent); color: #fff; }
-        
         .btn-mp4 { background: rgba(14, 165, 233, 0.1); color: var(--blue); }
         .btn-mp4:hover { background: var(--blue); color: #fff; }
-
-        .btn-share { background: rgba(168, 85, 247, 0.1); color: var(--purple); }
-        .btn-share:hover { background: var(--purple); color: #fff; }
 
         .loader { display: none; flex-direction: column; align-items: center; padding: 40px 0; }
         .loader-ring { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
@@ -87,11 +79,23 @@
         
         #visualizer { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; z-index: 0; opacity: 0.3; pointer-events: none; }
 
-        .lyrics-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(15px); z-index: 3000; display: none; flex-direction: column; padding: 40px 20px; }
-        .l-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .l-header h2 { font-size: 1.5rem; color: #fff; }
-        .l-close { background: rgba(255,255,255,0.1); border: none; width: 40px; height: 40px; border-radius: 50%; color: #fff; font-size: 1.2rem; cursor: pointer; }
-        .l-content { flex: 1; overflow-y: auto; text-align: center; font-size: 1.1rem; line-height: 2; color: rgba(255,255,255,0.8); white-space: pre-wrap; padding-bottom: 50px; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(15px); z-index: 3000; display: none; flex-direction: column; padding: 40px 20px; }
+        .m-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .m-header h2 { font-size: 1.5rem; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .m-close { background: rgba(255,255,255,0.1); border: none; width: 40px; height: 40px; border-radius: 50%; color: #fff; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+        .m-close:hover { background: var(--accent); }
+        .m-content { flex: 1; overflow-y: auto; text-align: center; }
+
+        .l-text { font-size: 1.1rem; line-height: 2; color: rgba(255,255,255,0.8); white-space: pre-wrap; padding-bottom: 50px; }
+
+        /* EQ STYLES */
+        .eq-select { width: 100%; max-width: 300px; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 1rem; outline: none; margin-bottom: 40px; font-family: 'Outfit'; cursor: pointer; }
+        .eq-select option { background: #121216; color: #fff; }
+        .eq-sliders { display: flex; justify-content: center; gap: 20px; height: 250px; }
+        .eq-band { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .eq-band span { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+        .eq-slider { -webkit-appearance: slider-vertical; width: 8px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 10px; outline: none; cursor: pointer; }
+        .eq-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }
 
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(10px); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 9999; white-space: nowrap;}
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -113,12 +117,37 @@
         <div id="results" class="track-list"></div>
     </div>
 
-    <div class="lyrics-modal" id="lyricsModal">
-        <div class="l-header">
+    <div class="modal" id="lyricsModal">
+        <div class="m-header">
             <h2><i class="fa-solid fa-microphone-lines" style="color:var(--accent)"></i> Şarkı Sözleri</h2>
-            <button class="l-close" onclick="toggleLyrics()"><i class="fa-solid fa-xmark"></i></button>
+            <button class="m-close" onclick="toggleModal('lyricsModal')"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="l-content" id="lyricsContent">Yükleniyor...</div>
+        <div class="m-content l-text" id="lyricsContent">Yükleniyor...</div>
+    </div>
+
+    <div class="modal" id="eqModal">
+        <div class="m-header">
+            <h2><i class="fa-solid fa-sliders" style="color:var(--blue)"></i> Ekolayzer</h2>
+            <button class="m-close" onclick="toggleModal('eqModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="m-content">
+            <select class="eq-select" id="eqPreset" onchange="applyPreset()">
+                <option value="bass" selected>Bass (Varsayılan)</option>
+                <option value="vocal">Vokal</option>
+                <option value="treble">Tiz (Treble)</option>
+                <option value="electronic">Elektronik</option>
+                <option value="acoustic">Akustik</option>
+                <option value="custom" hidden>Özel Ayar</option>
+                <option value="flat">Pasif (Kapalı)</option>
+            </select>
+            <div class="eq-sliders">
+                <div class="eq-band"><input type="range" class="eq-slider" id="eq60" min="-12" max="12" value="6" oninput="userChangedEQ()"><span id="val60">60Hz</span></div>
+                <div class="eq-band"><input type="range" class="eq-slider" id="eq230" min="-12" max="12" value="4" oninput="userChangedEQ()"><span id="val230">230Hz</span></div>
+                <div class="eq-band"><input type="range" class="eq-slider" id="eq910" min="-12" max="12" value="0" oninput="userChangedEQ()"><span id="val910">910Hz</span></div>
+                <div class="eq-band"><input type="range" class="eq-slider" id="eq3600" min="-12" max="12" value="0" oninput="userChangedEQ()"><span id="val3600">3.6kHz</span></div>
+                <div class="eq-band"><input type="range" class="eq-slider" id="eq14000" min="-12" max="12" value="0" oninput="userChangedEQ()"><span id="val14000">14kHz</span></div>
+            </div>
+        </div>
     </div>
 
     <div class="player-bar" id="playerBar">
@@ -126,7 +155,8 @@
         <div class="p-top">
             <img id="pImg" src="">
             <div class="p-meta"><h4 id="pTitle">Seçilmedi</h4><p>Flux Player</p></div>
-            <button class="ctrl-icon" onclick="toggleLyrics()" title="Sözler"><i class="fa-solid fa-quote-right"></i></button>
+            <button class="ctrl-icon" onclick="toggleModal('eqModal')" title="Ekolayzer"><i class="fa-solid fa-sliders"></i></button>
+            <button class="ctrl-icon" onclick="toggleModal('lyricsModal')" title="Sözler"><i class="fa-solid fa-quote-right"></i></button>
             <button class="ctrl-icon" onclick="closePlayer()" title="Kapat"><i class="fa-solid fa-chevron-down"></i></button>
         </div>
         <div class="p-progress"><span id="pCurrent">0:00</span><input type="range" class="p-seek" id="pSeekBar" value="0" step="1"><span id="pDuration">0:00</span></div>
@@ -154,7 +184,19 @@
         let currentPlaylist = [];
         let currentIndex = -1;
         let history = JSON.parse(localStorage.getItem('fHist')) || [];
+        
+        // EQ DEĞİŞKENLERİ
         let audioCtx, analyser, source;
+        let eqFilters = [];
+        const freqs = [60, 230, 910, 3600, 14000];
+        const presets = {
+            'bass': [6, 4, 0, 0, 0],
+            'vocal': [-2, 0, 3, 4, 2],
+            'treble': [-4, -2, 0, 4, 6],
+            'electronic': [5, 2, -2, 3, 4],
+            'acoustic': [2, 1, 2, 3, 2],
+            'flat': [0, 0, 0, 0, 0] // Pasif Mod
+        };
 
         window.onload = () => { 
             const urlParams = new URLSearchParams(window.location.search);
@@ -231,10 +273,8 @@
                                 <p><i class="fa-regular fa-clock"></i> ${item.duration}</p>
                             </div>
                             <div class="track-actions">
-                                <button class="icon-btn btn-play-sm" onclick="playSong(${index})" title="Dinle"><i class="fa-solid fa-play"></i></button>
-                                <button class="icon-btn btn-mp3" onclick="dl('${item.id}', 'audio', '${item.title.replace(/'/g, "\\'")}')" title="MP3 İndir"><i class="fa-solid fa-download"></i></button>
+                                <button class="icon-btn btn-play-sm" onclick="playSong(${index})" title="Dinle"><i class="fa-solid fa-download"></i></button>
                                 <button class="icon-btn btn-mp4" onclick="dl('${item.id}', 'video', '${item.title.replace(/'/g, "\\'")}')" title="Klip İndir"><i class="fa-solid fa-video"></i></button>
-                                <button class="icon-btn btn-share" onclick="shareSong('${item.title.replace(/'/g, "\\'")}')" title="Paylaş"><i class="fa-solid fa-share-nodes"></i></button>
                             </div>
                         </div>`;
                 });
@@ -264,7 +304,7 @@
                 navigator.mediaSession.setActionHandler('nexttrack', nextSong);
             }
 
-            if(!audioCtx) setupVisualizer();
+            if(!audioCtx) setupAudioSystem();
             if(document.getElementById('lyricsModal').style.display === 'flex') fetchLyrics(item.title);
 
             document.getElementById('pMainBtn').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
@@ -283,29 +323,39 @@
                 else content.innerHTML = "<i class='fa-solid fa-heart-crack' style='font-size:2rem; color:var(--muted);'></i><br><br>Bu şarkının sözleri henüz veri tabanında yok.";
             } catch(e) { content.innerText = "Sözlere ulaşılamadı."; }
         }
-        function toggleLyrics() {
-            const modal = document.getElementById('lyricsModal');
-            modal.style.display =             modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-            if(modal.style.display === 'flex' && currentIndex >= 0) fetchLyrics(currentPlaylist[currentIndex].title);
+        
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+            if(id === 'lyricsModal' && modal.style.display === 'flex' && currentIndex >= 0) {
+                fetchLyrics(currentPlaylist[currentIndex].title);
+            }
         }
 
-        // DÜZELTİLDİ: Vokal Güçlendirici görünmez hale getirildi (Tuşsuz, hep aktif)
-        function setupVisualizer() {
+        // YENİ: 5 BANTLI PROFESYONEL EKOLAYZER SİSTEMİ
+        function setupAudioSystem() {
             const canvas = document.getElementById('visualizer');
             const ctx = canvas.getContext('2d');
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioCtx.createAnalyser();
-            
-            // GÖRÜNMEZ VOKAL GÜÇLENDİRİCİ FİLTRESİ
-            const vocalFilter = audioCtx.createBiquadFilter();
-            vocalFilter.type = "peaking";
-            vocalFilter.frequency.value = 3000; // İnsan ses frekansı
-            vocalFilter.Q.value = 1.2;
-            vocalFilter.gain.value = 4; // Vokalleri 4dB öne çıkarır
-            
             source = audioCtx.createMediaElementSource(audio);
-            source.connect(vocalFilter); 
-            vocalFilter.connect(analyser);
+            
+            // 5 Farklı frekans filtresi (BiquadFilter) oluşturuluyor
+            eqFilters = freqs.map(freq => {
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = "peaking";
+                filter.frequency.value = freq;
+                filter.Q.value = 1.2;
+                filter.gain.value = 0;
+                return filter;
+            });
+            
+            // Filtreleri birbirine zincirliyoruz (Seri Bağlantı)
+            source.connect(eqFilters[0]);
+            for(let i = 0; i < eqFilters.length - 1; i++) {
+                eqFilters[i].connect(eqFilters[i+1]);
+            }
+            eqFilters[eqFilters.length - 1].connect(analyser);
             analyser.connect(audioCtx.destination);
             
             analyser.fftSize = 64;
@@ -326,12 +376,27 @@
                 }
             }
             draw();
+            
+            // Sistemi kurduktan sonra Varsayılan (Bass) ayarını otomatik yükle
+            applyPreset(); 
         }
 
-        function shareSong(title) {
-            const link = window.location.origin + "/?q=" + encodeURIComponent(title);
-            navigator.clipboard.writeText(link).then(() => {
-                showToast("🔗 Şarkı linki kopyalandı!", "fa-solid fa-link", "var(--purple)");
+        function applyPreset() {
+            const presetName = document.getElementById('eqPreset').value;
+            if(presetName === 'custom') return;
+            
+            const gains = presets[presetName];
+            freqs.forEach((freq, index) => {
+                document.getElementById(`eq${freq}`).value = gains[index];
+                if(eqFilters[index]) eqFilters[index].gain.value = gains[index];
+            });
+        }
+
+        function userChangedEQ() {
+            document.getElementById('eqPreset').value = 'custom';
+            freqs.forEach((freq, index) => {
+                const val = parseFloat(document.getElementById(`eq${freq}`).value);
+                if(eqFilters[index]) eqFilters[index].gain.value = val;
             });
         }
 
@@ -359,9 +424,13 @@
             window.location.href = `${API_BASE}/download?id=${encodeURIComponent(id)}&type=${type}`; 
         }
         
-        function closePlayer() { document.getElementById('playerBar').style.display='none'; audio.pause(); }
+        function closePlayer() { 
+            document.getElementById('playerBar').style.display='none'; 
+            document.getElementById('lyricsModal').style.display='none'; 
+            document.getElementById('eqModal').style.display='none'; 
+            audio.pause(); 
+        }
         searchInput.onkeydown = (e) => { if(e.key==='Enter') triggerSearch(); };
     </script>
 </body>
 </html>
- 
