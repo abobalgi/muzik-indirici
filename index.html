@@ -22,6 +22,11 @@
         .search-box input { flex: 1; background: transparent; border: none; color: #fff; font-size: 1.05rem; padding-left: 15px; outline: none; }
         .search-box button { background: linear-gradient(135deg, var(--accent), #e11d48); color: white; border: none; width: 48px; height: 48px; border-radius: 12px; font-size: 1.1rem; cursor: pointer; transition: transform 0.2s; }
         
+        /* ÇÖZÜM BURADA: SİLİNEN ARAMA KUTUSU TASARIMI GERİ GELDİ */
+        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(15px); border: 1px solid var(--border); border-radius: 16px; margin-top: 8px; display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.7); overflow: hidden; }
+        .sug-item { padding: 14px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--muted); transition: 0.2s; }
+        .sug-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+
         .tabs-wrapper { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 10px; }
         .tab-btn { background: none; border: none; color: var(--muted); font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: 0.2s; padding: 5px 10px; border-radius: 8px; }
         .tab-btn:hover { color: #fff; }
@@ -269,7 +274,8 @@
             const loader = document.getElementById('loader');
 
             resDiv.innerHTML = ""; loader.style.display = 'flex';
-                        try {
+
+            try {
                 const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}`);
                 const data = await res.json();
                 if(data.length === 0) throw new Error("Boş Liste");
@@ -296,14 +302,13 @@
             }
         }
         
-        // MÜZİKLERİM LİSTESİNDEN ŞARKIYI SİLME FONKSİYONU
         function removeDownload(id, event) {
             event.stopPropagation();
             let downs = JSON.parse(localStorage.getItem('fDown')) || [];
             downs = downs.filter(i => i.id !== id);
             localStorage.setItem('fDown', JSON.stringify(downs));
             showToast("🗑️ Şarkı listeden silindi.", "fa-solid fa-trash", "var(--muted)");
-            loadDownloads(); // Listeyi yenile
+            loadDownloads(); 
         }
 
         function loadDownloads() {
@@ -315,28 +320,22 @@
             renderPlaylist(downs, resDiv, true);
         }
 
-        // AKILLI RENDER FONKSİYONU (Hangi sekmedeyiz diye bakar)
         function renderPlaylist(playlist, resDiv, isMyMusic = false) {
             resDiv.innerHTML = "";
             playlist.forEach((item, index) => {
                 let actionButtons = "";
-                
-                // EĞER MÜZİKLERİM SEKMESİNDEYSEK SADECE PLAY VE SİL BUTONU KOYAR
                 if(isMyMusic) {
                     actionButtons = `
                         <button class="icon-btn btn-play-sm" onclick="playSong(${index})" title="Dinle"><i class="fa-solid fa-play"></i></button>
                         <button class="icon-btn btn-mp3" onclick="removeDownload('${item.id}', event)" title="Listeden Sil"><i class="fa-solid fa-trash"></i></button>
                     `;
-                } 
-                // EĞER TRENDLER/ARAMA SEKMESİNDEYSEK İNDİRME BUTONLARINI KOYAR
-                else {
+                } else {
                     actionButtons = `
                         <button class="icon-btn btn-play-sm" onclick="playSong(${index})" title="Dinle"><i class="fa-solid fa-play"></i></button>
                         <button class="icon-btn btn-mp3" onclick="dl_safe('${item.id}', 'audio', '${item.title.replace(/'/g, "\\'")}', '${item.thumbnail}', '${item.duration}')" title="MP3 İndir"><i class="fa-solid fa-download"></i></button>
                         <button class="icon-btn btn-mp4" onclick="dl_safe('${item.id}', 'video', '${item.title.replace(/'/g, "\\'")}', '${item.thumbnail}', '${item.duration}')" title="Klip İndir"><i class="fa-solid fa-video"></i></button>
                     `;
                 }
-
                 resDiv.innerHTML += `
                     <div class="track-card" id="card-${index}">
                         <div class="track-thumb" onclick="playSong(${index})">
@@ -431,6 +430,3 @@
     </script>
 </body>
 </html>
-
-
-           
