@@ -1,32 +1,13 @@
 import subprocess
 import sys
 import os
-import tarfile
-import urllib.request
 
-# NİHAİ ÇÖZÜM: PhantomJS Kurulumu (Görünmez Şifre Kırıcı Tarayıcı)
-PHANTOMJS_VERSION = "2.1.1"
-PHANTOMJS_TAR = f"phantomjs-{PHANTOMJS_VERSION}-linux-x86_64.tar.bz2"
-PHANTOMJS_URL = f"https://bitbucket.org/ariya/phantomjs/downloads/{PHANTOMJS_TAR}"
-PHANTOMJS_DIR = os.path.join(os.getcwd(), f"phantomjs-{PHANTOMJS_VERSION}-linux-x86_64", "bin")
-
-def install_phantomjs():
-    if not os.path.exists(PHANTOMJS_DIR):
-        print("PhantomJS indiriliyor...")
-        try:
-            urllib.request.urlretrieve(PHANTOMJS_URL, PHANTOMJS_TAR)
-            with tarfile.open(PHANTOMJS_TAR, "r:bz2") as tar:
-                tar.extractall()
-            os.remove(PHANTOMJS_TAR)
-            print("PhantomJS kurulumu tamamlandı.")
-        except Exception as e:
-            print(f"PhantomJS kurulum hatasi: {e}")
-
-install_phantomjs()
-
-# PhantomJS'i sistem yoluna ekliyoruz ki yt-dlp onu bulabilsin
-if os.path.exists(PHANTOMJS_DIR) and PHANTOMJS_DIR not in os.environ.get('PATH', ''):
-    os.environ['PATH'] = PHANTOMJS_DIR + os.pathsep + os.environ.get('PATH', '')
+# YALIN VE ÖLÜMCÜL KOMBİNASYON: yt-dlp ve curl-cffi (Tarayıcı Taklidi)
+try:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--force-reinstall", "https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "curl-cffi"])
+except:
+    pass
 
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
@@ -44,8 +25,6 @@ CORS(app)
 
 DOWNLOAD_FOLDER = 'downloads'
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
-
-COOKIE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt')
 
 def cleanup_old_files():
     now = time.time()
@@ -72,6 +51,13 @@ def make_safe_filename(text):
     if not text: text = "FluxMusic_Media"
     return text
 
+# İŞTE GERÇEK NİNJA KILIFI: Sadece iOS ve Android kullanıyoruz. Çerez (cookie) YOK!
+YT_CLIENT_SPOOF = {
+    'youtube': {
+        'client': ['ios', 'android', 'tv']
+    }
+}
+
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('q')
@@ -85,8 +71,8 @@ def search():
         'extract_flat': True,
         'ignoreerrors': True,
         'source_address': '0.0.0.0',
-        'cookiefile': COOKIE_PATH,
-        'legacyserverconnect': True # JS Şifrelerini çözmek için ekstra güç
+        'extractor_args': YT_CLIENT_SPOOF,
+        'impersonate': 'chrome' # Bot kalkanını delen asıl silah!
     }
     
     results = []
@@ -120,8 +106,8 @@ def stream_audio():
             'quiet': True,
             'nocheckcertificate': True,
             'source_address': '0.0.0.0',
-            'cookiefile': COOKIE_PATH,
-            'legacyserverconnect': True
+            'extractor_args': YT_CLIENT_SPOOF,
+            'impersonate': 'chrome'
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
@@ -163,8 +149,8 @@ def download():
         'http_chunk_size': 10485760,
         'nocheckcertificate': True,
         'source_address': '0.0.0.0',
-        'cookiefile': COOKIE_PATH,
-        'legacyserverconnect': True
+        'extractor_args': YT_CLIENT_SPOOF,
+        'impersonate': 'chrome'
     }
     
     if dl_type == 'audio':
@@ -212,3 +198,4 @@ def get_lyrics():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9079)
+    
