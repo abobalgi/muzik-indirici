@@ -51,7 +51,7 @@ def make_safe_filename(text):
     if not text: text = "FluxMusic_Media"
     return text
 
-# İŞTE GERÇEK NİNJA KILIFI: Sadece iOS ve Android kullanıyoruz. Çerez (cookie) YOK!
+# NİNJA KILIFI: Sadece İndirme ve Dinleme için kullanılacak!
 YT_CLIENT_SPOOF = {
     'youtube': {
         'client': ['ios', 'android', 'tv']
@@ -65,14 +65,14 @@ def search():
     
     search_query = f"ytsearch80:{query}" if not is_trend else "ytsearch80:Türkçe hit şarkılar pop rap"
     
+    # DİKKAT: Arama kısmından maskeleri (impersonate ve extractor_args) sildik!
+    # Sadece dümdüz, hızlıca arama yapacak.
     ydl_opts = {
         'format': 'bestaudio/best', 
         'quiet': True, 
         'extract_flat': True,
         'ignoreerrors': True,
-        'source_address': '0.0.0.0',
-        'extractor_args': YT_CLIENT_SPOOF,
-        'impersonate': 'chrome' # Bot kalkanını delen asıl silah!
+        'source_address': '0.0.0.0'
     }
     
     results = []
@@ -106,8 +106,8 @@ def stream_audio():
             'quiet': True,
             'nocheckcertificate': True,
             'source_address': '0.0.0.0',
-            'extractor_args': YT_CLIENT_SPOOF,
-            'impersonate': 'chrome'
+            'extractor_args': YT_CLIENT_SPOOF, # Maske burada var
+            'impersonate': 'chrome'            # Bot kalkanını delen asıl silah burada var!
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
@@ -149,8 +149,8 @@ def download():
         'http_chunk_size': 10485760,
         'nocheckcertificate': True,
         'source_address': '0.0.0.0',
-        'extractor_args': YT_CLIENT_SPOOF,
-        'impersonate': 'chrome'
+        'extractor_args': YT_CLIENT_SPOOF, # Maske burada var
+        'impersonate': 'chrome'            # Bot kalkanını delen asıl silah burada var!
     }
     
     if dl_type == 'audio':
@@ -198,4 +198,3 @@ def get_lyrics():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9079)
-    
