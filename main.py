@@ -27,8 +27,8 @@ CORS(app)
 DOWNLOAD_FOLDER = 'downloads'
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-# 1. KADEME: TELEGRAM VIP LİSTESİ (SABİT)
-VIP_PROXIES = [
+# TELEGRAM LİSTESİ (Artık ayrıcalıklı değil, havuza dahil edilecek)
+TELEGRAM_PROXIES = [
     "socks5://103.153.63.223:1080", "socks5://202.62.62.113:1080", "socks5://203.189.150.44:1080",
     "socks5://68.71.251.134:4145", "socks5://94.158.49.82:3128", "socks5://184.178.172.23:4145",
     "socks5://213.35.110.67:10864", "socks5://72.214.108.67:4145", "socks5://202.65.127.194:1080",
@@ -40,7 +40,7 @@ VIP_PROXIES = [
     "socks5://192.111.130.5:17002"
 ]
 
-# 2. KADEME: CANLI DOSYA OKUYUCU (Kullanıcı her indirme yaptığında anında klasörü tarar!)
+# CANLI DOSYA OKUYUCU (Her indirmede klasördeki txt'leri tarar)
 def get_live_file_proxies():
     live_proxies = []
     try:
@@ -52,14 +52,20 @@ def get_live_file_proxies():
                 lines = f.read().splitlines()
                 for p in lines:
                     clean_p = p.strip()
-                    formatted_p = f"http://{clean_p}"
-                    if clean_p and formatted_p not in live_proxies:
+                    if not clean_p: continue
+                    # Eğer başında http veya socks yoksa http ekle
+                    if not clean_p.startswith(('http', 'socks')):
+                        formatted_p = f"http://{clean_p}"
+                    else:
+                        formatted_p = clean_p
+                        
+                    if formatted_p not in live_proxies:
                         live_proxies.append(formatted_p)
         return live_proxies
     except:
         return []
 
-# 3. KADEME: İNTERNETTEN ÜCRETSİZ ÇEKİLENLER (Açılışta 1 kez çeker)
+# İNTERNETTEN ÜCRETSİZ ÇEKİLENLER
 def get_free_proxies():
     try:
         res = requests.get("https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=5000&country=all&ssl=all&anonymity=all", timeout=5)
@@ -145,13 +151,16 @@ def stream_audio():
     video_id = request.args.get('id')
     if not video_id: return "ID eksik", 400
     
-    # ANLIK DOSYA OKUMA İŞLEMİ BURADA YAPILIYOR!
-    FILE_PROXIES = get_live_file_proxies()
+    # TÜM PROXYLERİ TEK BİR HAVUZDA BİRLEŞTİRİYORUZ (Set ile aynı olanları eliyoruz)
+    ALL_PROXIES = list(set(TELEGRAM_PROXIES + get_live_file_proxies() + DYNAMIC_PROXIES))
     
     test_proxies = []
-    if VIP_PROXIES: test_proxies.append(random.choice(VIP_PROXIES))
-    if FILE_PROXIES: test_proxies.append(random.choice(FILE_PROXIES))
-    if DYNAMIC_PROXIES: test_proxies.append(random.choice(DYNAMIC_PROXIES))
+    if ALL_PROXIES:
+        # Havuzdan tamamen rastgele 3 adet proxy seçiyoruz
+        num_to_pick = min(3, len(ALL_PROXIES))
+        test_proxies = random.sample(ALL_PROXIES, num_to_pick)
+        
+    # Her zaman son çare olarak direkt bağlantıyı (None) ekliyoruz
     test_proxies.append(None) 
 
     for current_proxy in test_proxies:
@@ -163,7 +172,10 @@ def stream_audio():
                     'nocheckcertificate': True,
                     'source_address': '0.0.0.0',
                     'extractor_args': spoof,
-                    'socket_timeout': 8
+                    'socket_timeout': 4,       
+                    'retries': 0,              
+                    'extractor_retries': 0,
+                    'fragment_retries': 0
                 }
                 
                 if current_proxy:
@@ -204,13 +216,14 @@ def download():
     unique_id = str(uuid.uuid4())
     output_path = os.path.join(DOWNLOAD_FOLDER, unique_id)
     
-    # ANLIK DOSYA OKUMA İŞLEMİ BURADA YAPILIYOR!
-    FILE_PROXIES = get_live_file_proxies()
+    # TÜM PROXYLERİ TEK BİR HAVUZDA BİRLEŞTİRİYORUZ
+    ALL_PROXIES = list(set(TELEGRAM_PROXIES + get_live_file_proxies() + DYNAMIC_PROXIES))
     
     test_proxies = []
-    if VIP_PROXIES: test_proxies.append(random.choice(VIP_PROXIES))       
-    if FILE_PROXIES: test_proxies.append(random.choice(FILE_PROXIES))     
-    if DYNAMIC_PROXIES: test_proxies.append(random.choice(DYNAMIC_PROXIES)) 
+    if ALL_PROXIES:
+        num_to_pick = min(3, len(ALL_PROXIES))
+        test_proxies = random.sample(ALL_PROXIES, num_to_pick)
+        
     test_proxies.append(None)                                             
 
     for current_proxy in test_proxies:
@@ -222,7 +235,10 @@ def download():
                 'nocheckcertificate': True,
                 'source_address': '0.0.0.0',
                 'extractor_args': spoof,
-                'socket_timeout': 8 
+                'socket_timeout': 4,       # Proxy 4 sn içinde bağlanmazsa acıma çöpe at
+                'retries': 0,              # Şans verme
+                'extractor_retries': 0,
+                'fragment_retries': 0
             }
             
             if current_proxy:
@@ -253,7 +269,9 @@ def download():
                         return Response(file_data, mimetype=mime, headers={
                             'Content-Disposition': f'attachment; filename="{safe_title}.{ext}"'
                         })
-            except: continue 
+            except Exception as e:
+                print(f"Başarısız. 0 saniye kayıpla diğerine geçiliyor...")
+                continue 
             
     return "Indirme hatasi", 500
 
@@ -274,7 +292,6 @@ def get_lyrics():
             })
         return jsonify({"error": "Bulunamadi"}), 404
     except: return jsonify({"error": "Hata"}), 500
-
 
 # =====================================================================
 # YT-DLP GÜNCELLEMESİ İÇİN 24 SAATTE BİR RESTART
