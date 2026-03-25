@@ -2,7 +2,6 @@ import subprocess
 import sys
 import os
 
-# YALIN VE ÖLÜMCÜL KOMBİNASYON: yt-dlp ve curl-cffi (Tarayıcı Taklidi)
 try:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "--force-reinstall", "https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz"])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "curl-cffi"])
@@ -51,10 +50,10 @@ def make_safe_filename(text):
     if not text: text = "FluxMusic_Media"
     return text
 
-# NİNJA KILIFI: Sadece İndirme ve Dinleme için kullanılacak!
+# Sadece iOS kılıfı bırakıldı (YouTube iPhone'lara şifre sormaz)
 YT_CLIENT_SPOOF = {
     'youtube': {
-        'client': ['ios', 'android', 'tv']
+        'client': ['ios', 'tv']
     }
 }
 
@@ -65,8 +64,6 @@ def search():
     
     search_query = f"ytsearch80:{query}" if not is_trend else "ytsearch80:Türkçe hit şarkılar pop rap"
     
-    # DİKKAT: Arama kısmından maskeleri (impersonate ve extractor_args) sildik!
-    # Sadece dümdüz, hızlıca arama yapacak.
     ydl_opts = {
         'format': 'bestaudio/best', 
         'quiet': True, 
@@ -89,7 +86,8 @@ def search():
                             'thumbnail': entry.get('thumbnails')[-1]['url'] if entry.get('thumbnails') else '',
                             'duration': format_duration(dur)
                         })
-    except: pass 
+    except BaseException as e: 
+        print(f"ARAMA HATASI: {e}")
 
     if is_trend and len(results) > 0:
         random.shuffle(results)
@@ -103,11 +101,10 @@ def stream_audio():
     try:
         ydl_opts = {
             'format': 'bestaudio/best', 
-            'quiet': True,
+            'quiet': False,
             'nocheckcertificate': True,
             'source_address': '0.0.0.0',
-            'extractor_args': YT_CLIENT_SPOOF, # Maske burada var
-            'impersonate': 'chrome'            # Bot kalkanını delen asıl silah burada var!
+            'extractor_args': YT_CLIENT_SPOOF
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
@@ -130,7 +127,9 @@ def stream_audio():
                     if chunk: yield chunk
 
             return Response(generate(), status=r.status_code, headers=resp_headers)
-    except Exception as e: return str(e), 500
+    except BaseException as e: 
+        print(f"STREAM HATASI: {e}")
+        return str(e), 500
 
 @app.route('/download', methods=['GET'])
 def download():
@@ -143,14 +142,11 @@ def download():
     output_path = os.path.join(DOWNLOAD_FOLDER, unique_id)
     ydl_opts = {
         'outtmpl': f'{output_path}.%(ext)s', 
-        'quiet': True, 
+        'quiet': False, # Gizli hataları görmek için False yaptık!
         'noplaylist': True,
-        'concurrent_fragment_downloads': 5,
-        'http_chunk_size': 10485760,
         'nocheckcertificate': True,
         'source_address': '0.0.0.0',
-        'extractor_args': YT_CLIENT_SPOOF, # Maske burada var
-        'impersonate': 'chrome'            # Bot kalkanını delen asıl silah burada var!
+        'extractor_args': YT_CLIENT_SPOOF
     }
     
     if dl_type == 'audio':
@@ -175,8 +171,12 @@ def download():
                 return Response(file_data, mimetype=mime, headers={
                     'Content-Disposition': f'attachment; filename="{safe_title}.{ext}"'
                 })
-            else: return "Dosya hatasi", 500
-    except Exception as e: return str(e), 500
+            else: 
+                print("Dosya indirilemedi, liste boş!")
+                return "Dosya hatasi", 500
+    except BaseException as e: 
+        print(f"İNDİRME HATASI: {e}") # İşte o gizli sorunu bu satır ifşa edecek!
+        return str(e), 500
 
 @app.route('/lyrics', methods=['GET'])
 def get_lyrics():
@@ -198,3 +198,4 @@ def get_lyrics():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9079)
+            
