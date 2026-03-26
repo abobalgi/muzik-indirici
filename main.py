@@ -3,10 +3,10 @@ import sys
 import os
 import threading
 
-# SİSTEM AÇILIRKEN EN GÜNCEL MOTORLARI İNDİRİR
+# SİSTEM AÇILIRKEN EN GÜNCEL MOTORLARI VE JAVASCRIPT BEYNİNİ İNDİRİR
 try:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp-ejs", "nodejs-bin", "curl-cffi"])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "--force-reinstall", "https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz"])
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "curl-cffi"])
 except:
     pass
 
@@ -58,9 +58,9 @@ def make_safe_filename(text):
     if not text: text = "FluxMusic_Media"
     return text
 
-# YENİ ZIRHLI KILIFLAR SIRALAMASI
+# YENİ ZIRHLI KILIFLAR
 CLIENT_FALLBACKS = [
-    None, # 1. SEÇENEK: HİÇBİR MASKE TAKMA! (VIP Çerezleri ile en temiz bağlantı)
+    None, # 1. SEÇENEK: HİÇBİR MASKE TAKMA! (VIP Çerezleri ve JS Motoru ile en temiz bağlantı)
     {'youtube': {'client': ['web']}},
     {'youtube': {'client': ['android']}},
     {'youtube': {'client': ['ios']}}
@@ -119,11 +119,9 @@ def stream_audio():
                 'source_address': '0.0.0.0'
             }
             
-            # Eğer bir maske (spoof) varsa ekle, yoksa maskesiz (Web) olarak bırak
             if spoof:
                 ydl_opts['extractor_args'] = spoof
             
-            # VIP KARTI GÖSTER!
             if os.path.exists(COOKIE_FILE_PATH):
                 ydl_opts['cookiefile'] = COOKIE_FILE_PATH
 
@@ -171,11 +169,9 @@ def download():
             'source_address': '0.0.0.0'
         }
         
-        # Eğer bir maske (spoof) varsa ekle, yoksa maskesiz (Web) olarak bırak
         if spoof:
             ydl_opts['extractor_args'] = spoof
         
-        # VIP KARTI GÖSTER!
         if os.path.exists(COOKIE_FILE_PATH):
             ydl_opts['cookiefile'] = COOKIE_FILE_PATH
         
@@ -234,4 +230,4 @@ def auto_updater():
 if __name__ == '__main__':
     threading.Thread(target=auto_updater, daemon=True).start()
     app.run(host='0.0.0.0', port=9079)
-    
+        
