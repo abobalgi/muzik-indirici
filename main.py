@@ -30,7 +30,7 @@ os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 # KULLANICININ YÜKLEDİĞİ VIP KART (ÇEREZLER)
 COOKIE_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt')
 
-# CLOUDFLARE GÖRÜNMEZLİK PELERİNİ (Gelecek YouTube API güncellemeleri için rezerve edildi)
+# CLOUDFLARE GÖRÜNMEZLİK PELERİNİ
 CF_WORKER_URL = "https://summer-base-725e.abobhalhgam804.workers.dev/"
 
 def cleanup_old_files():
@@ -58,11 +58,12 @@ def make_safe_filename(text):
     if not text: text = "FluxMusic_Media"
     return text
 
-# ZIRHLI KILIFLAR
+# YENİ ZIRHLI KILIFLAR SIRALAMASI
 CLIENT_FALLBACKS = [
-    {'youtube': {'client': ['ios']}},
-    {'youtube': {'client': ['tv']}},
-    {'youtube': {'client': ['android_vr']}}
+    None, # 1. SEÇENEK: HİÇBİR MASKE TAKMA! (VIP Çerezleri ile en temiz bağlantı)
+    {'youtube': {'client': ['web']}},
+    {'youtube': {'client': ['android']}},
+    {'youtube': {'client': ['ios']}}
 ]
 
 @app.route('/search', methods=['GET'])
@@ -80,7 +81,6 @@ def search():
         'source_address': '0.0.0.0'
     }
     
-    # VIP KARTI GÖSTER! (Eğer cookies.txt yüklüyse devreye girer)
     if os.path.exists(COOKIE_FILE_PATH):
         ydl_opts['cookiefile'] = COOKIE_FILE_PATH
         
@@ -116,9 +116,12 @@ def stream_audio():
                 'format': 'bestaudio/best', 
                 'quiet': True,
                 'nocheckcertificate': True,
-                'source_address': '0.0.0.0',
-                'extractor_args': spoof
+                'source_address': '0.0.0.0'
             }
+            
+            # Eğer bir maske (spoof) varsa ekle, yoksa maskesiz (Web) olarak bırak
+            if spoof:
+                ydl_opts['extractor_args'] = spoof
             
             # VIP KARTI GÖSTER!
             if os.path.exists(COOKIE_FILE_PATH):
@@ -165,9 +168,12 @@ def download():
             'quiet': True, 
             'noplaylist': True,
             'nocheckcertificate': True,
-            'source_address': '0.0.0.0',
-            'extractor_args': spoof
+            'source_address': '0.0.0.0'
         }
+        
+        # Eğer bir maske (spoof) varsa ekle, yoksa maskesiz (Web) olarak bırak
+        if spoof:
+            ydl_opts['extractor_args'] = spoof
         
         # VIP KARTI GÖSTER!
         if os.path.exists(COOKIE_FILE_PATH):
@@ -195,7 +201,9 @@ def download():
                     return Response(file_data, mimetype=mime, headers={
                         'Content-Disposition': f'attachment; filename="{safe_title}.{ext}"'
                     })
-        except: continue 
+        except Exception as e: 
+            print(f"Maske Başarısız: {e}")
+            continue 
             
     return "Indirme hatasi", 500
 
