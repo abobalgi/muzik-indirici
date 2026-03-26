@@ -6,22 +6,26 @@ import unicodedata
 from urllib.parse import quote
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
-import yt_dlp  # Sadece sivil ve ban riski olmayan arama işlemi için tutuyoruz
+import yt_dlp
 
 app = Flask(__name__)
 CORS(app)
 
+DOWNLOAD_FOLDER = 'downloads'
+os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
 # =========================================================================
-# 🛡️ YENİ ÇAĞ: API HAVUZU (ÇEREZ YOK, BAN YOK, BEKLEME YOK!)
-# Bu sunucular dünya çapındaki açık kaynak gönüllülerine aittir.
-# YouTube'un bot korumasıyla onlar savaşır, biz sadece MP3'ü alır çıkarız!
+# 🛡️ MELEZ MOTOR (HYBRID ENGINE): API + DAHİLİ YEDEK SİSTEM
 # =========================================================================
-API_POOL = [
+COBALT_APIS = [
+    "https://api.cobalt.tools/api/json"
+]
+
+PIPED_APIS = [
     "https://pipedapi.kavin.rocks",
-    "https://pipedapi.tokhmi.xyz",
-    "https://pipedapi.smnz.de",
-    "https://pi.pivp.en",
-    "https://piped-api.garudalinux.org"
+    "https://api.piped.projectsegfau.lt",
+    "https://pipedapi.lunar.icu",
+    "https://pipedapi.syncpundit.io"
 ]
 
 def make_safe_filename(text):
@@ -47,7 +51,6 @@ def search():
     is_trend = not query
     search_query = f"ytsearch80:{query}" if not is_trend else "ytsearch80:Türkçe hit şarkılar pop rap"
     
-    # Arama yapmak asla ban yedirmez, bu yüzden yt-dlp'yi burada en sivil ayarlarla kullanıyoruz.
     ydl_opts = {
         'format': 'bestaudio/best', 
         'quiet': True, 
@@ -63,7 +66,7 @@ def search():
             for entry in data.get('entries', []):
                 if entry:
                     dur = entry.get('duration') or 0
-                    if 0 < dur <= 600: # 10 dakikadan uzun videoları filtrele
+                    if 0 < dur <= 600:
                         results.append({
                             'id': entry.get('id'), 
                             'title': entry.get('title'),
@@ -78,21 +81,54 @@ def search():
         
     return jsonify(results)
 
-def get_audio_url_from_api(video_id):
-    """API Havuzunda sırayla dolaşır, çalışan ilk sunucudan en kaliteli ses linkini çalar!"""
-    for api in API_POOL:
+def get_audio_url(video_id):
+    # 1. AŞAMA: COBALT API (En Güçlü API)
+    headers = {"Accept": "application/json", "Content-Type": "application/json"}
+    payload = {"url": f"https://www.youtube.com/watch?v={video_id}", "isAudioOnly": True, "aFormat": "mp3"}
+    for api in COBALT_APIS:
         try:
-            res = requests.get(f"{api}/streams/{video_id}", timeout=7)
+            res = requests.post(api, json=payload, headers=headers, timeout=8)
+            if res.status_code in [200, 202]:
+                data = res.json()
+                if data.get('url'):
+                    print("[SİSTEM] Cobalt API ile link bulundu!")
+                    return data['url'], "FluxMusic_Media"
+        except Exception as e:
+            print(f"[COBALT HATA] {api} -> {e}")
+
+    # 2. AŞAMA: PIPED API HAVUZU
+    for api in PIPED_APIS:
+        try:
+            res = requests.get(f"{api}/streams/{video_id}", timeout=8)
             if res.status_code == 200:
                 data = res.json()
-                audio_streams = data.get('audioStreams', [])
-                if audio_streams:
-                    # Sesleri kaliteye (bitrate) göre en yüksekten en düşüğe sırala
-                    audio_streams.sort(key=lambda x: x.get('bitrate', 0), reverse=True)
-                    return audio_streams[0]['url'], data.get('title', 'FluxMusic_Media')
+                streams = data.get('audioStreams', [])
+                if streams:
+                    streams.sort(key=lambda x: x.get('bitrate', 0), reverse=True)
+                    print(f"[SİSTEM] Piped API ile link bulundu! ({api})")
+                    return streams[0]['url'], data.get('title', 'FluxMusic_Media')
         except Exception as e:
-            print(f"[API ATLANDI] {api} sunucusu yanıt vermedi, diğerine geçiliyor...")
+            print(f"[PIPED HATA] {api} atlandı.")
             continue
+
+    # 3. AŞAMA: DAHİLİ YEDEK MOTOR (yt-dlp iOS Maskesi)
+    # Eğer dış dünyadaki tüm API'ler çökerse sistem pes etmez, çerezsiz iOS maskesiyle işi kendisi bitirir!
+    print("[SİSTEM] Tüm API'ler çöktü! Dahili iOS Yedek Motoru devreye giriyor...")
+    try:
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'quiet': True,
+            'nocheckcertificate': True,
+            'source_address': '0.0.0.0',
+            'extractor_args': {'youtube': {'client': ['ios']}}
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
+            if info and info.get('url'):
+                return info['url'], info.get('title', 'FluxMusic_Media')
+    except Exception as e:
+        print(f"[DAHİLİ MOTOR HATASI] -> {e}")
+
     return None, None
 
 @app.route('/stream_audio')
@@ -100,9 +136,9 @@ def stream_audio():
     video_id = request.args.get('id')
     if not video_id: return "ID eksik", 400
     
-    audio_url, _ = get_audio_url_from_api(video_id)
+    audio_url, _ = get_audio_url(video_id)
     if not audio_url:
-        return "Tüm API sunucuları dolu, lütfen birazdan tekrar dene.", 500
+        return "Tüm sunucular dolu, lütfen birazdan tekrar dene.", 500
 
     try:
         req_headers = {}
@@ -130,18 +166,15 @@ def download():
     video_id = request.args.get('id')
     if not video_id: return "ID eksik", 400
 
-    # DOĞRUDAN API'DEN ŞARKIYI BULUYORUZ (DİSK KULLANIMI SIFIR!)
-    audio_url, title = get_audio_url_from_api(video_id)
+    audio_url, title = get_audio_url(video_id)
     if not audio_url:
-        return "Tüm API sunucuları dolu, lütfen birazdan tekrar dene.", 500
+        return "Tüm sunucular dolu, lütfen birazdan tekrar dene.", 500
         
     try:
         safe_title = make_safe_filename(title)
-        
-        # Sesi kendi sunucumuza indirmeden, anlık olarak kullanıcıya paslıyoruz!
         r = requests.get(audio_url, stream=True)
         
-        # Tüm tarayıcıları (Opera dâhil) adam eden nükleer seçenek
+        # Opera ve Safari'yi adam eden nükleer seçenek aynen korundu
         mime = "application/octet-stream"
         encoded_name = quote(f"{safe_title}.mp3")
         
@@ -165,11 +198,9 @@ def get_lyrics():
     query = request.args.get('q')
     if not query: return jsonify({"error": "Sorgu bos"}), 400
     try:
-        # Şarkı sözü araması için isimleri tertemiz yapan o efsanevi filtre
         clean_q = re.sub(r'\(.*?\)|\[.*?\]', '', query)
         clean_q = re.sub(r'(?i)(official|video|audio|lyrics|lyric|klip|yeni|hq|hd|4k|feat\.|ft\.|prod\.|by)', '', clean_q)
         clean_q = clean_q.replace('|', '').replace('"', '').replace("'", "").replace('-', ' ').strip()
-        
         res = requests.get(f"https://lrclib.net/api/search?q={clean_q}", timeout=5)
         data = res.json()
         if data and len(data) > 0:
@@ -182,4 +213,4 @@ def get_lyrics():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9079)
-                
+                    
