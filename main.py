@@ -4,9 +4,16 @@ import os
 import threading
 
 # 1. BÜYÜK ÇÖZÜM: JAVASCRIPT BEYNİNİN YOLUNU SİSTEME ZORLA EKLE!
-local_bin_path = os.path.join(os.path.expanduser("~"), ".local", "bin")
-if local_bin_path not in os.environ.get("PATH", ""):
-    os.environ["PATH"] = local_bin_path + os.pathsep + os.environ.get("PATH", "")
+paths_to_add = [
+    os.path.join(os.path.expanduser("~"), ".local", "bin"),
+    os.path.join(sys.prefix, "bin"),
+    os.path.dirname(sys.executable)
+]
+current_path = os.environ.get("PATH", "")
+for p in paths_to_add:
+    if os.path.exists(p) and p not in current_path:
+        current_path = p + os.pathsep + current_path
+os.environ["PATH"] = current_path
 
 # SİSTEM AÇILIRKEN EN GÜNCEL MOTORLARI İNDİRİR
 try:
@@ -31,7 +38,6 @@ CORS(app)
 DOWNLOAD_FOLDER = 'downloads'
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
-# KULLANICININ YÜKLEDİĞİ VIP KART (ÇEREZLER)
 COOKIE_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt')
 
 def cleanup_old_files():
@@ -59,12 +65,12 @@ def make_safe_filename(text):
     if not text: text = "FluxMusic_Media"
     return text
 
-# ZIRHLI KILIFLAR
-CLIENT_FALLBACKS = [
-    None, # 1. SEÇENEK: HİÇBİR MASKE TAKMA! (VIP Çerezleri ile Chrome Web tarayıcısı gibi davran)
-    {'youtube': {'client': ['web']}},
-    {'youtube': {'client': ['android']}},
-    {'youtube': {'client': ['ios']}}
+# DİNAMİK SAVAŞ STRATEJİSİ (KİLİT NOKTA BURASI!)
+FALLBACK_STRATEGIES = [
+    {'name': 'iOS (Hızlı, Çerezsiz)', 'client': ['ios'], 'use_cookie': False, 'impersonate': None},
+    {'name': 'TV (Alternatif, Çerezsiz)', 'client': ['tv'], 'use_cookie': False, 'impersonate': None},
+    {'name': 'Web + VIP Çerez + Chrome', 'client': ['web'], 'use_cookie': True, 'impersonate': 'chrome'},
+    {'name': 'Android (Son Çare)', 'client': ['android'], 'use_cookie': False, 'impersonate': None}
 ]
 
 @app.route('/search', methods=['GET'])
@@ -74,7 +80,6 @@ def search():
     
     search_query = f"ytsearch80:{query}" if not is_trend else "ytsearch80:Türkçe hit şarkılar pop rap"
     
-    # ARAMA İÇİN SADE VE HIZLI AYARLAR (VIP Çerezleri veya Chrome Taklidi YOK!)
     ydl_opts = {
         'format': 'bestaudio/best', 
         'quiet': True, 
@@ -110,7 +115,7 @@ def stream_audio():
     video_id = request.args.get('id')
     if not video_id: return "ID eksik", 400
     
-    for spoof in CLIENT_FALLBACKS:
+    for strategy in FALLBACK_STRATEGIES:
         try:
             ydl_opts = {
                 'format': 'bestaudio/best', 
@@ -119,13 +124,11 @@ def stream_audio():
                 'source_address': '0.0.0.0'
             }
             
-            # Maske varsa ekle, yoksa Google Chrome gibi davran!
-            if spoof:
-                ydl_opts['extractor_args'] = spoof
-            else:
-                ydl_opts['impersonate'] = 'chrome'
-            
-            if os.path.exists(COOKIE_FILE_PATH):
+            if strategy['client']:
+                ydl_opts['extractor_args'] = {'youtube': {'client': strategy['client']}}
+            if strategy['impersonate']:
+                ydl_opts['impersonate'] = strategy['impersonate']
+            if strategy['use_cookie'] and os.path.exists(COOKIE_FILE_PATH):
                 ydl_opts['cookiefile'] = COOKIE_FILE_PATH
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -150,7 +153,7 @@ def stream_audio():
 
                 return Response(generate(), status=r.status_code, headers=resp_headers)
         except Exception as e: 
-            print(f"[STREAM HATASI] Maske {spoof}: {e}")
+            print(f"[STREAM HATASI] Strateji: {strategy['name']} -> {e}")
             continue 
             
     return "Stream basarisiz", 500
@@ -165,7 +168,7 @@ def download():
     unique_id = str(uuid.uuid4())
     output_path = os.path.join(DOWNLOAD_FOLDER, unique_id)
     
-    for spoof in CLIENT_FALLBACKS:
+    for strategy in FALLBACK_STRATEGIES:
         ydl_opts = {
             'outtmpl': f'{output_path}.%(ext)s', 
             'quiet': True, 
@@ -174,13 +177,11 @@ def download():
             'source_address': '0.0.0.0'
         }
         
-        # Maske varsa ekle, yoksa Google Chrome gibi davran!
-        if spoof:
-            ydl_opts['extractor_args'] = spoof
-        else:
-            ydl_opts['impersonate'] = 'chrome'
-        
-        if os.path.exists(COOKIE_FILE_PATH):
+        if strategy['client']:
+            ydl_opts['extractor_args'] = {'youtube': {'client': strategy['client']}}
+        if strategy['impersonate']:
+            ydl_opts['impersonate'] = strategy['impersonate']
+        if strategy['use_cookie'] and os.path.exists(COOKIE_FILE_PATH):
             ydl_opts['cookiefile'] = COOKIE_FILE_PATH
         
         if dl_type == 'audio':
@@ -206,7 +207,7 @@ def download():
                         'Content-Disposition': f'attachment; filename="{safe_title}.{ext}"'
                     })
         except Exception as e: 
-            print(f"[İNDİRME HATASI] Maske {spoof}: {e}")
+            print(f"[İNDİRME HATASI] Strateji: {strategy['name']} -> {e}")
             continue 
             
     return "Indirme hatasi", 500
@@ -238,4 +239,4 @@ def auto_updater():
 if __name__ == '__main__':
     threading.Thread(target=auto_updater, daemon=True).start()
     app.run(host='0.0.0.0', port=9079)
-    
+        
