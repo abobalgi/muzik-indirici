@@ -3,10 +3,15 @@ import sys
 import os
 import threading
 
-# SİSTEM AÇILIRKEN EN GÜNCEL MOTORLARI VE JAVASCRIPT BEYNİNİ İNDİRİR
+# 1. BÜYÜK ÇÖZÜM: JAVASCRIPT BEYNİNİN YOLUNU SİSTEME ZORLA EKLE!
+# Sunucu ~/.local/bin klasörünü görmediği için yolu biz tanımlıyoruz.
+local_bin_path = os.path.join(os.path.expanduser("~"), ".local", "bin")
+if local_bin_path not in os.environ.get("PATH", ""):
+    os.environ["PATH"] = local_bin_path + os.pathsep + os.environ.get("PATH", "")
+
+# SİSTEM AÇILIRKEN EN GÜNCEL MOTORLARI İNDİRİR
 try:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp-ejs", "nodejs-bin", "curl-cffi"])
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--force-reinstall", "https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp", "yt-dlp-ejs", "nodejs-bin", "curl-cffi"])
 except:
     pass
 
@@ -29,9 +34,6 @@ os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 # KULLANICININ YÜKLEDİĞİ VIP KART (ÇEREZLER)
 COOKIE_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt')
-
-# CLOUDFLARE GÖRÜNMEZLİK PELERİNİ
-CF_WORKER_URL = "https://summer-base-725e.abobhalhgam804.workers.dev/"
 
 def cleanup_old_files():
     now = time.time()
@@ -58,9 +60,9 @@ def make_safe_filename(text):
     if not text: text = "FluxMusic_Media"
     return text
 
-# YENİ ZIRHLI KILIFLAR
+# ZIRHLI KILIFLAR
 CLIENT_FALLBACKS = [
-    None, # 1. SEÇENEK: HİÇBİR MASKE TAKMA! (VIP Çerezleri ve JS Motoru ile en temiz bağlantı)
+    None, # 1. SEÇENEK: HİÇBİR MASKE TAKMA! (Chrome Taklidi + VIP Çerezleri)
     {'youtube': {'client': ['web']}},
     {'youtube': {'client': ['android']}},
     {'youtube': {'client': ['ios']}}
@@ -78,7 +80,8 @@ def search():
         'quiet': True, 
         'extract_flat': True,
         'ignoreerrors': True,
-        'source_address': '0.0.0.0'
+        'source_address': '0.0.0.0',
+        'impersonate': 'chrome' # 2. BÜYÜK ÇÖZÜM: YOUTUBE BİZİ CHROME SANACAK
     }
     
     if os.path.exists(COOKIE_FILE_PATH):
@@ -116,7 +119,8 @@ def stream_audio():
                 'format': 'bestaudio/best', 
                 'quiet': True,
                 'nocheckcertificate': True,
-                'source_address': '0.0.0.0'
+                'source_address': '0.0.0.0',
+                'impersonate': 'chrome'
             }
             
             if spoof:
@@ -166,7 +170,8 @@ def download():
             'quiet': True, 
             'noplaylist': True,
             'nocheckcertificate': True,
-            'source_address': '0.0.0.0'
+            'source_address': '0.0.0.0',
+            'impersonate': 'chrome' # Tarayıcı taklidi
         }
         
         if spoof:
@@ -230,4 +235,4 @@ def auto_updater():
 if __name__ == '__main__':
     threading.Thread(target=auto_updater, daemon=True).start()
     app.run(host='0.0.0.0', port=9079)
-        
+                   
