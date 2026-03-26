@@ -4,7 +4,6 @@ import os
 import threading
 
 # 1. BÜYÜK ÇÖZÜM: JAVASCRIPT BEYNİNİN YOLUNU SİSTEME ZORLA EKLE!
-# Sunucu ~/.local/bin klasörünü görmediği için yolu biz tanımlıyoruz.
 local_bin_path = os.path.join(os.path.expanduser("~"), ".local", "bin")
 if local_bin_path not in os.environ.get("PATH", ""):
     os.environ["PATH"] = local_bin_path + os.pathsep + os.environ.get("PATH", "")
@@ -62,7 +61,7 @@ def make_safe_filename(text):
 
 # ZIRHLI KILIFLAR
 CLIENT_FALLBACKS = [
-    None, # 1. SEÇENEK: HİÇBİR MASKE TAKMA! (Chrome Taklidi + VIP Çerezleri)
+    None, # 1. SEÇENEK: HİÇBİR MASKE TAKMA! (VIP Çerezleri ile Chrome Web tarayıcısı gibi davran)
     {'youtube': {'client': ['web']}},
     {'youtube': {'client': ['android']}},
     {'youtube': {'client': ['ios']}}
@@ -75,17 +74,14 @@ def search():
     
     search_query = f"ytsearch80:{query}" if not is_trend else "ytsearch80:Türkçe hit şarkılar pop rap"
     
+    # ARAMA İÇİN SADE VE HIZLI AYARLAR (VIP Çerezleri veya Chrome Taklidi YOK!)
     ydl_opts = {
         'format': 'bestaudio/best', 
         'quiet': True, 
         'extract_flat': True,
         'ignoreerrors': True,
-        'source_address': '0.0.0.0',
-        'impersonate': 'chrome' # 2. BÜYÜK ÇÖZÜM: YOUTUBE BİZİ CHROME SANACAK
+        'source_address': '0.0.0.0'
     }
-    
-    if os.path.exists(COOKIE_FILE_PATH):
-        ydl_opts['cookiefile'] = COOKIE_FILE_PATH
         
     results = []
     try:
@@ -101,7 +97,8 @@ def search():
                             'thumbnail': entry.get('thumbnails')[-1]['url'] if entry.get('thumbnails') else '',
                             'duration': format_duration(dur)
                         })
-    except: pass 
+    except Exception as e: 
+        print(f"[ARAMA HATASI]: {e}")
 
     if is_trend and len(results) > 0:
         random.shuffle(results)
@@ -119,12 +116,14 @@ def stream_audio():
                 'format': 'bestaudio/best', 
                 'quiet': True,
                 'nocheckcertificate': True,
-                'source_address': '0.0.0.0',
-                'impersonate': 'chrome'
+                'source_address': '0.0.0.0'
             }
             
+            # Maske varsa ekle, yoksa Google Chrome gibi davran!
             if spoof:
                 ydl_opts['extractor_args'] = spoof
+            else:
+                ydl_opts['impersonate'] = 'chrome'
             
             if os.path.exists(COOKIE_FILE_PATH):
                 ydl_opts['cookiefile'] = COOKIE_FILE_PATH
@@ -150,7 +149,9 @@ def stream_audio():
                         if chunk: yield chunk
 
                 return Response(generate(), status=r.status_code, headers=resp_headers)
-        except: continue 
+        except Exception as e: 
+            print(f"[STREAM HATASI] Maske {spoof}: {e}")
+            continue 
             
     return "Stream basarisiz", 500
 
@@ -170,12 +171,14 @@ def download():
             'quiet': True, 
             'noplaylist': True,
             'nocheckcertificate': True,
-            'source_address': '0.0.0.0',
-            'impersonate': 'chrome' # Tarayıcı taklidi
+            'source_address': '0.0.0.0'
         }
         
+        # Maske varsa ekle, yoksa Google Chrome gibi davran!
         if spoof:
             ydl_opts['extractor_args'] = spoof
+        else:
+            ydl_opts['impersonate'] = 'chrome'
         
         if os.path.exists(COOKIE_FILE_PATH):
             ydl_opts['cookiefile'] = COOKIE_FILE_PATH
@@ -203,7 +206,7 @@ def download():
                         'Content-Disposition': f'attachment; filename="{safe_title}.{ext}"'
                     })
         except Exception as e: 
-            print(f"Maske Başarısız: {e}")
+            print(f"[İNDİRME HATASI] Maske {spoof}: {e}")
             continue 
             
     return "Indirme hatasi", 500
@@ -235,4 +238,4 @@ def auto_updater():
 if __name__ == '__main__':
     threading.Thread(target=auto_updater, daemon=True).start()
     app.run(host='0.0.0.0', port=9079)
-                   
+    
