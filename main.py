@@ -2,6 +2,7 @@ import subprocess
 import sys
 import os
 import threading
+from urllib.parse import quote # TARAYICI UYUMLULUĞU İÇİN YENİ EKLENDİ
 
 # 1. BÜYÜK ÇÖZÜM: JAVASCRIPT BEYNİNİN YOLUNU SİSTEME ZORLA EKLE!
 paths_to_add = [
@@ -65,7 +66,7 @@ def make_safe_filename(text):
     if not text: text = "FluxMusic_Media"
     return text
 
-# DİNAMİK SAVAŞ STRATEJİSİ (KİLİT NOKTA BURASI!)
+# DİNAMİK SAVAŞ STRATEJİSİ
 FALLBACK_STRATEGIES = [
     {'name': 'iOS (Hızlı, Çerezsiz)', 'client': ['ios'], 'use_cookie': False, 'impersonate': None},
     {'name': 'TV (Alternatif, Çerezsiz)', 'client': ['tv'], 'use_cookie': False, 'impersonate': None},
@@ -203,8 +204,15 @@ def download():
                     with open(final_file, 'rb') as f: file_data = f.read()
                     try: os.remove(final_file)
                     except: pass
+                    
+                    # === İŞTE OPERA/SAFARİ/UC BROWSER'I ADAM EDECEK O KESİN EMİRLER ===
+                    encoded_name = quote(f"{safe_title}.{ext}")
+                    
                     return Response(file_data, mimetype=mime, headers={
-                        'Content-Disposition': f'attachment; filename="{safe_title}.{ext}"'
+                        'Content-Disposition': f'attachment; filename="{safe_title}.{ext}"; filename*=UTF-8\'\'{encoded_name}',
+                        'Content-Length': str(len(file_data)),
+                        'Content-Transfer-Encoding': 'binary',
+                        'Accept-Ranges': 'bytes'
                     })
         except Exception as e: 
             print(f"[İNDİRME HATASI] Strateji: {strategy['name']} -> {e}")
@@ -239,4 +247,4 @@ def auto_updater():
 if __name__ == '__main__':
     threading.Thread(target=auto_updater, daemon=True).start()
     app.run(host='0.0.0.0', port=9079)
-        
+    
