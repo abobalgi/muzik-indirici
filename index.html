@@ -690,7 +690,9 @@
 
         window.onload = () => { triggerSearch(true); checkServerHealth(); initEQBands(); };
 
-        document.getElementById('searchInput').oninput  = e => e.target.value ? fetchSug(e.target.value) : showHist();
+        document.getElementById('searchInput').oninput  = (() => {
+            let _dt; return e => { clearTimeout(_dt); _dt = setTimeout(() => e.target.value ? fetchSug(e.target.value) : showHist(), 250); };
+        })();
         document.getElementById('searchInput').onfocus  = () => { if(!document.getElementById('searchInput').value) showHist(); };
         document.onclick = e => { if(!e.target.closest('.search-wrapper')) document.getElementById('suggestionsBox').style.display='none'; };
 
