@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flux Music | İndir ve Dinle</title>
+    <title>Flux Music | Dinle ve İndir</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -1074,11 +1074,6 @@
                 case 'ArrowDown':  e.preventDefault(); audio.volume=Math.max(0,audio.volume-0.1); document.getElementById('pVolume').value=audio.volume; setVolume(audio.volume); break;
             }
         });
-
-        // ── Sunucuyu uykudan koru (ücretsiz hosting) ──
-        setInterval(()=>{
-            fetch('/api/health',{method:'GET',cache:'no-store'}).catch(()=>{});
-        }, 240000); // 4 dakikada bir
 
         // ── Player Kontrolleri ──
         function togglePlayerSize(){ const bar=document.getElementById('playerBar'); bar.classList.toggle('expanded'); if(bar.classList.contains('expanded')){ scrollToCurrentTrack(); setTimeout(updateTitleMarquee,300); } }
